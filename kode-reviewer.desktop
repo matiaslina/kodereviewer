@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Kode reviewer
+Exec=kode-reviewer
+Icon=kde
+Type=Application
+Terminal=false
+Categories=Development
