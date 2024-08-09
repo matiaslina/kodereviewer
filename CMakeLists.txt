@@ -29,6 +29,8 @@ find_package(KF6 REQUIRED COMPONENTS
     IconThemes
 )
 
+find_package(LibGit2 REQUIRED)
+
 ecm_find_qmlmodule(org.kde.kirigami REQUIRED)
 
 add_subdirectory(src)
