@@ -113,6 +113,7 @@ class Comment : public QObject {
     Q_PROPERTY(QDateTime updatedAt READ updatedAt NOTIFY updatedAtChanged)
     Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
     Q_PROPERTY(QString username READ username NOTIFY usernameChanged)
+    Q_PROPERTY(QUrl userImage READ userImage NOTIFY userImageChanged)
 
     QML_ELEMENT
 public:
@@ -126,6 +127,7 @@ public:
     QDateTime updatedAt() const;
     QString description() const;
     QString username() const;
+    QUrl userImage() const;
 
 signals:
     void idChanged(int id);
@@ -134,6 +136,7 @@ signals:
     void updatedAtChanged(QDateTime updatedAt);
     void descriptionChanged(QString description);
     void usernameChanged(QString username);
+    void userImageChanged(QUrl userImage);
 
 private:
     unsigned int _id;

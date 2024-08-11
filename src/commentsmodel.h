@@ -18,7 +18,8 @@ public:
         CreatedAtRole,
         UpdatedAtRole,
         DescriptionRole,
-        UsernameRole
+        UsernameRole,
+        UserImageRole
     };
 
     explicit CommentModel(QObject *parent = nullptr);

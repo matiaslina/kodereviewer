@@ -4,6 +4,8 @@ import QtQuick.Controls 6 as QQC2
 import QtQuick.Layouts 6.7
 
 import org.kde.kirigami as Kirigami
+
+import org.kde.kodereviewer.models
 import org.kde.kodereviewer.types
 
 
@@ -29,12 +31,15 @@ Kirigami.ApplicationWindow {
     height: 400
 
     title: "Kode Reviewer"
+    PullRequestModel {
+        id: pullRequestModel
+    }
 
     globalDrawer: ProjectDrawer {
         id: drawer
-        repositoryRoot: root.repositoryRoot
-
+        model: pullRequestModel ? pullRequestModel : undefined
         onPullRequestSelected: (pr) => {
+            print(pr.title)
             root.currentPullRequest = pr
         }
     }
@@ -54,12 +59,25 @@ Kirigami.ApplicationWindow {
     }
 
     onCurrentPullRequestChanged: {
-        print("Pushing pull request!!")
         pageStack.replace(pullRequestOverviewPage)
+    }
+
+
+    Connections {
+        target: NetworkManager
+
+        function onPullRequestFinished(jsonResponse) {
+            print("Loading data!")
+            pullRequestModel.loadData(jsonResponse)
+        }
+        function onErrorOcurred(err) {
+            console.log(err);
+        }
     }
 
     Component.onCompleted: {
         NetworkManager.setUrl(root.username, root.repositoryName)
-        drawer.loadPullRequests()
+        //drawer.loadPullRequests()
+        NetworkManager.getPullRequests()
     }
 }

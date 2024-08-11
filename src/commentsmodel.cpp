@@ -29,6 +29,8 @@ QVariant CommentModel::data(const QModelIndex &index, int role) const
         return comment->description();
     case UsernameRole:
         return comment->username();
+    case UserImageRole:
+        return comment->userImage();
     case Qt::DisplayRole:
         return comment->description();
 
@@ -44,7 +46,8 @@ QHash<int, QByteArray> CommentModel::roleNames() const
         {CreatedAtRole, "createdAt"},
         {UpdatedAtRole, "updatedAt"},
         {DescriptionRole, "description"},
-        {UsernameRole, "username"}
+        {UsernameRole, "username"},
+        {UserImageRole, "userImage"}
     };
 }
 

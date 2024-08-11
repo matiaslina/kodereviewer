@@ -119,8 +119,9 @@ QString Comment::nodeId() const { return _nodeId; }
 QDateTime Comment::createdAt() const { return _createdAt; }
 QDateTime Comment::updatedAt() const { return _updatedAt; }
 QString Comment::description() const { return _description; }
-QString Comment::username() const {
-    return _user.get()->username;
+QString Comment::username() const { return _user.get()->username; }
+QUrl Comment::userImage() const {
+    return _user.get()->avatarUrl;
 }
 
 

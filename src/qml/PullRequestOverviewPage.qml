@@ -1,5 +1,6 @@
 import QtQuick 6.7
 import QtQuick.Controls 6 as QQC2
+import QtQuick.Effects
 import QtQuick.Layouts 6.7
 
 import org.kde.kirigami as Kirigami
@@ -7,12 +8,15 @@ import org.kde.kodereviewer.models
 import org.kde.kodereviewer.types
 
 
-Kirigami.ScrollablePage {
+
+Kirigami.Page {
     id:root
     required property PullRequest pullRequest
 
     Kirigami.Theme.colorSet: Kirigami.Theme.View
     Kirigami.Theme.inherit: false
+
+    title: `${pullRequest.number} - ${pullRequest.title}`
 
     CommentModel {
         id: commentModel
@@ -32,13 +36,17 @@ Kirigami.ScrollablePage {
                     }
 
                     RowLayout {
+                        Image {
+                            source: userImage
+                            sourceSize.width: 22
+                            sourceSize.height: 22
+                        }
                         Kirigami.Heading {
+                            id: commentHeading
                             level: 3
                             text: `@${username}`
-                            Layout.fillWidth: true
                         }
                         Text {
-                            Layout.fillWidth: false
                             text: createdAt
                         }
                     }
@@ -57,56 +65,70 @@ Kirigami.ScrollablePage {
     }
 
     ColumnLayout {
-        id: mainLayout
         anchors.fill: parent
 
-        Kirigami.Heading {
-            level: 1
-            text: pullRequest.title
-        }
-        Kirigami.Separator {
+        QQC2.ScrollView {
+            spacing: 0
             Layout.fillWidth: true
-        }
-
-        Text {
-            Layout.fillHeight: false
-            text: pullRequest.description
-            textFormat: Text.MarkdownText
-        }
-
-        Kirigami.Separator {
-            Layout.fillWidth: true
-        }
-
-        Kirigami.Heading {
-            level: 2
-            text: "Comments"
-        }
-
-        Repeater {
-            id: commentView
             Layout.fillHeight: true
-            Layout.fillWidth: true
-            model: commentModel
-            delegate: commentDelegate
-        }
-
-
-        Item {
-            visible: commentView.count === 0
-            Layout.fillHeight: true
-            Layout.fillWidth: true
             ColumnLayout {
-                anchors.centerIn: parent
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: "Loading comments..."
+                id: mainLayout
+                anchors.fill: parent
+
+                Kirigami.Heading {
+                    level: 1
+                    text: pullRequest.title
                 }
-                QQC2.BusyIndicator {
-                    Layout.alignment: Qt.AlignHCenter
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                }
+
+                Text {
+                    Layout.fillHeight: false
+                    text: pullRequest.description
+                    textFormat: Text.MarkdownText
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                }
+
+                Kirigami.Heading {
+                    level: 2
+                    text: "Comments"
+                }
+
+
+                Repeater {
+                    id: commentView
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    model: commentModel
+                    delegate: commentDelegate
+                }
+
+
+                Item {
+                    visible: commentView.count === 0
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: "Loading comments..."
+                        }
+                        QQC2.BusyIndicator {
+                            Layout.alignment: Qt.AlignHCenter
+                        }
+                    }
                 }
             }
         }
+    }
+
+    footer: CommentControl {
+
     }
 
     Connections {

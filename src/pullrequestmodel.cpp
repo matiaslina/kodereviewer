@@ -108,3 +108,8 @@ QList<PullRequest*> PullRequestModel::getPullRequests()
     }
     return retval;
 }
+
+PullRequest *PullRequestModel::get(int index) const
+{
+    return pullRequests.at(index);
+}

@@ -30,6 +30,9 @@ ecm_target_qml_sources(kode-reviewer
     qml/ProjectDrawer.qml
 
     qml/PullRequestOverviewPage.qml
+
+    qml/components/RoundedImage.qml
+    qml/components/CommentControl.qml
 )
 
 target_link_libraries(kode-reviewer

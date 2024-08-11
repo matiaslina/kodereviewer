@@ -33,6 +33,7 @@ public:
 public slots:
     void loadData(QByteArray data);
     QList<PullRequest*> getPullRequests();
+    PullRequest *get(int index) const;
 
 private:
     std::vector<PullRequest*> pullRequests;
