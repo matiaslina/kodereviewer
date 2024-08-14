@@ -44,7 +44,7 @@ public:
     ~Repository();
 
     Reference reference(QString &shorthand);
-    GitObject revparseSingle(QString &spec);
+    GitObject revparseSingle(const QString &spec);
 
     git_repository *ptr;
 };

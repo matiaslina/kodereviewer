@@ -57,6 +57,9 @@ int main(int argc, char** argv)
         qDebug() << "Deltas: " << diff.numDelta();
         for (auto d : diff.deltas()) {
             qDebug() << "Filename: " << d->newFile().path();
+            qDebug() << "Contents!";
+            auto entry = t1.findEntryByName(d->newFile().path());
+            qDebug() << entry.contents();
         }
     }
     return 0;

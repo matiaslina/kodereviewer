@@ -2,13 +2,14 @@ import QtQuick 6.7
 import QtQuick.Controls 6 as QQC2
 import QtQuick.Layouts 6.7
 import org.kde.kirigami 2 as Kirigami
-import org.kde.kitemmodels 1 as KItemModels
 import org.kde.syntaxhighlighting 1
-import org.kde.kirigamiaddons.delegates 1
 
 QQC2.Control {
     id: root
+
     onActiveFocusChanged: textField.forceActiveFocus()
+    signal commentSent(string comment)
+
     Kirigami.Action {
         id: sendAction
         icon.name: "document-send"
@@ -17,7 +18,9 @@ QQC2.Control {
         checkable: true
 
         onTriggered: {
-            //_private.postMessage();
+            print("Sending text" + textField.text)
+            root.commentSent(textField.text)
+            textField.text = ""
         }
         tooltip: text
     }
@@ -45,27 +48,18 @@ QQC2.Control {
                 id: chatBarScrollView
 
                 Layout.fillWidth: true
-                //Layout.maximumHeight: Kirigami.Units.gridUnit * 2
 
-                //Layout.topMargin: Kirigami.Units.smallSpacing
+                Layout.topMargin: Kirigami.Units.smallSpacing
                 Layout.bottomMargin: Kirigami.Units.smallSpacing
                 Layout.minimumHeight: Kirigami.Units.gridUnit * 2
 
                 // HACK: This is to stop the ScrollBar flickering on and off as the height is increased
                 QQC2.ScrollBar.vertical.policy: QQC2.ScrollBar.AsNeeded
 
-                // Behavior on implicitHeight {
-                //     NumberAnimation {
-                //         id: chatBarHeightAnimation
-                //         duration: Kirigami.Units.shortDuration
-                //         easing.type: Easing.InOutCubic
-                //     }
-                // }
-
                 QQC2.TextArea {
                     id: textField
 
-                    placeholderText: "Send a comment"
+                    placeholderText: "Comment..."
                     verticalAlignment: TextEdit.AlignVCenter
                     wrapMode: TextEdit.Wrap
 

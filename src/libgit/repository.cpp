@@ -74,7 +74,7 @@ Reference Repository::reference(QString &shorthand)
     return r;
 }
 
-GitObject Repository::revparseSingle(QString &spec)
+GitObject Repository::revparseSingle(const QString &spec)
 {
     return GitObject::revparseSingle(*this, spec);
 }

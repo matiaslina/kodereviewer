@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtCore
 import QtQuick 6.7
 import QtQuick.Controls 6 as QQC2
@@ -24,6 +25,7 @@ Kirigami.ApplicationWindow {
     property string repositoryRoot: "/home/matias/Workspace/miniaudio-test"
     property string token: settings.githubToken
     property PullRequest currentPullRequest
+    property string currentReviewFile: ""
 
     property NetworkManager connection: NetworkManager {
         owner: root.username
@@ -47,11 +49,14 @@ Kirigami.ApplicationWindow {
         id: pullRequestModel
     }
 
-    GitBackend {
-        id: gitBackend
+    property GitBackend gitBackend: GitBackend {
         path: root.repositoryRoot
         sourceRef: root.currentPullRequest ? root.currentPullRequest.sourceRef : ""
         targetRef: root.currentPullRequest ? root.currentPullRequest.targetRef : ""
+    }
+
+    Kirigami.PagePool {
+        id: pagePool
     }
 
     globalDrawer: ProjectDrawer {
@@ -75,7 +80,16 @@ Kirigami.ApplicationWindow {
         PullRequestOverviewPage {
             pullRequest: root.currentPullRequest
             connection: root.connection
-            git: gitBackend
+            git: root.gitBackend
+        }
+    }
+
+    Component {
+        id: reviewFilePage
+        ReviewFilePage {
+            pullRequest: root.currentPullRequest
+            git: root.gitBackend
+            file: root.currentReviewFile
         }
     }
 
@@ -85,6 +99,15 @@ Kirigami.ApplicationWindow {
             gitBackend.targetRef = currentPullRequest.targetRef
         }
         pageStack.replace(pullRequestOverviewPage);
+    }
+
+    function switchToReviewFile(file) {
+        currentReviewFile = file
+        pageStack.replace(reviewFilePage)
+    }
+
+    function switchToPullRequestOverview() {
+        pageStack.replace(pullRequestOverviewPage)
     }
 
     Component.onCompleted: {

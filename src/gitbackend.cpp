@@ -5,16 +5,34 @@
 
 GitBackend::GitBackend(QObject *parent)
     : QObject(parent)
+    , repository(nullptr)
 {}
 
 GitBackend::GitBackend(QString &path, QObject *parent)
     : QObject(parent)
     , _path(path)
+    , repository(nullptr)
 {
     repository = new Repository(path);
 }
 
 GitBackend::~GitBackend() = default;
+
+void GitBackend::initializeRepository()
+{
+    initializeRepository(_path);
+}
+
+void GitBackend::initializeRepository(QString &path)
+{
+    if (repository != nullptr)
+    {
+        delete repository;
+        repository = nullptr;
+    }
+    repository = new Repository(path);
+    emit repositoryInitialized();
+}
 
 QString GitBackend::path() const
 {
@@ -24,6 +42,7 @@ QString GitBackend::path() const
 void GitBackend::setPath(QString &path)
 {
     _path = path;
+    initializeRepository();
 }
 
 
@@ -68,4 +87,30 @@ QStringList GitBackend::filesChanged()
     }
 
     return l;
+}
+
+bool GitBackend::isRepositoryInitialized() const
+{
+    return repository != nullptr;
+}
+
+QString GitBackend::sourceFileContents(QString filename) const
+{
+    if (!isRepositoryInitialized() || _sourceRef.isEmpty()) {
+        return "";
+    }
+
+    GitTree tree = repository->revparseSingle(_sourceRef).commit().tree();
+    GitTreeEntry entry = tree.findEntryByName(filename);
+    return entry.contents();
+}
+
+QString GitBackend::targetFileContents(QString filename) const
+{
+    if (!isRepositoryInitialized() || _targetRef.isEmpty()) {
+        return QStringLiteral("");
+    }
+    GitTree tree = repository->revparseSingle(_targetRef).commit().tree();
+    GitTreeEntry entry = tree.findEntryByName(filename);
+    return entry.contents();
 }

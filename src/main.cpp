@@ -15,6 +15,8 @@
 #include "apidata.h"
 #include "gitbackend.h"
 
+#include "libgit/utils.h"
+
 int main(int argc, char *argv[])
 {
     KIconTheme::initTheme();
@@ -29,6 +31,8 @@ int main(int argc, char *argv[])
     if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE")) {
         QQuickStyle::setStyle(QStringLiteral("org.kde.desktop"));
     }
+
+    initLibGit();
 
     QSettings settings;
     QQmlApplicationEngine engine;
@@ -46,6 +50,7 @@ int main(int argc, char *argv[])
     if (engine.rootObjects().isEmpty()) {
         return -1;
     }
+
 
     return app.exec();
 }

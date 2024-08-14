@@ -14,12 +14,14 @@ class GitBackend : public QObject
     Q_PROPERTY(QString sourceRef READ sourceRef WRITE setSourceRef NOTIFY sourceRefChanged)
     Q_PROPERTY(QString targetRef READ targetRef WRITE setTargetRef NOTIFY targetRefChanged)
 
-
     QML_ELEMENT
 public:
     GitBackend(QObject *parent = nullptr);
     GitBackend(QString &path, QObject *parent = nullptr);
     ~GitBackend();
+
+    void initializeRepository();
+    void initializeRepository(QString &path);
 
     QString path() const;
     void setPath(QString &path);
@@ -32,11 +34,16 @@ public:
 
 public slots:
     QStringList filesChanged();
+    bool isRepositoryInitialized() const;
+
+    QString sourceFileContents(QString filename) const;
+    QString targetFileContents(QString filename) const;
 
 signals:
     void pathChanged(QString path);
     void sourceRefChanged(QString ref);
     void targetRefChanged(QString ref);
+    void repositoryInitialized();
 
 private:
     QString _path;
