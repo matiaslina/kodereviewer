@@ -9,6 +9,7 @@ TAGS
 .projectile
 .kateproject
 .kateproject.build
+.qmlls.ini
 
 # C++ objects and libs
 *.slo

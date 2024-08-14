@@ -2,27 +2,8 @@
 #include <git2/global.h>
 #include <qdebug.h>
 
-void initLibGit()
-{
-    git_libgit2_init();
-}
-
-void shutdownLibGit()
-{
-    git_libgit2_shutdown();
-}
-
-bool handleError(int error)
-{
-    if (error < 0) {
-        const git_error *e = git_error_last();
-        qDebug() << QString::fromUtf8("Error %1/%2: %3").arg(error)
-            .arg(e->klass)
-            .arg(e->message);
-        return true;
-    }
-    return false;
-}
+#include "gitobject.h"
+#include "utils.h"
 
 Reference::Reference()
     : ptr(nullptr)
@@ -75,20 +56,25 @@ QString Reference::typeStr()
 
 Repository::Repository(QString &path)
 {
-    handleError(git_repository_open(&this->_repository, path.toStdString().c_str()));
+    handleError(git_repository_open(&this->ptr, path.toStdString().c_str()));
 }
 
 Repository::~Repository()
 {
-    if(this->_repository != nullptr) {
-        git_repository_free(this->_repository);
-        this->_repository = nullptr;
+    if(this->ptr != nullptr) {
+        git_repository_free(this->ptr);
+        this->ptr = nullptr;
     }
 }
 
 Reference Repository::reference(QString &shorthand)
 {
     Reference r;
-    handleError(git_reference_dwim(&r.ptr, _repository, shorthand.toStdString().c_str()));
+    handleError(git_reference_dwim(&r.ptr, ptr, shorthand.toStdString().c_str()));
     return r;
+}
+
+GitObject Repository::revparseSingle(QString &spec)
+{
+    return GitObject::revparseSingle(*this, spec);
 }

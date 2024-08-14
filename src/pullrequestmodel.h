@@ -9,6 +9,7 @@
 class PullRequestModel : public QAbstractListModel
 {
     Q_OBJECT
+    QML_ELEMENT
 public:
     enum PrListRoles {
         NumberRole = Qt::UserRole + 1,

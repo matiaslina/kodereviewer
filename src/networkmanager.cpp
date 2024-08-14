@@ -22,6 +22,50 @@ NetworkManager::NetworkManager(QObject* parent)
 
 NetworkManager::~NetworkManager() { }
 
+
+/***************
+ * SLOTS
+ ***************/
+
+QString NetworkManager::owner() const
+{
+    return _owner;
+}
+
+void NetworkManager::setOwner(QString owner)
+{
+    _owner = owner;
+    setUrl();
+}
+
+QString NetworkManager::repo() const
+{
+    return _repo;
+}
+
+void NetworkManager::setRepo(QString repo)
+{
+    _repo = repo;
+    setUrl();
+}
+
+QUrl NetworkManager::baseUrl() const
+{
+    return requestFactory->baseUrl();
+}
+
+/**
+ * Set the url to the api endpoint for `owner` and `repo`
+ */
+void NetworkManager::setUrl()
+{
+    if (!_owner.isEmpty() && !_repo.isEmpty()) {
+        setUrl(_owner, _repo);
+        qDebug() << "Setting url" << baseUrl();
+        emit baseUrlChanged(baseUrl());
+    }
+}
+
 void NetworkManager::setUrl(QString owner, QString repo)
 {
     base = QUrl(tr("https://api.github.com/repos/%1/%2")
@@ -54,12 +98,11 @@ void NetworkManager::replyFinished(QNetworkReply* reply)
         }
         break;
     case QNetworkReply::ProtocolUnknownError:
-        qDebug() << "protocol unknown: " << reply->errorString() << " For "
-                 << requestFactory->baseUrl();
+        {};
     default:
         auto document = QJsonDocument::fromJson(contents);
         qDebug() << document;
-        emit errorOcurred(reply->error(), &document);
+        emit errorOcurred(&document);
     }
 }
 

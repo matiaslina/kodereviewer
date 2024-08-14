@@ -4,14 +4,15 @@ import QtQuick.Effects
 import QtQuick.Layouts 6.7
 
 import org.kde.kirigami as Kirigami
-import org.kde.kodereviewer.models
-import org.kde.kodereviewer.types
+import org.kde.kodereviewer
 
 
 
 Kirigami.Page {
     id:root
     required property PullRequest pullRequest
+    required property NetworkManager connection
+    required property GitBackend git
 
     Kirigami.Theme.colorSet: Kirigami.Theme.View
     Kirigami.Theme.inherit: false
@@ -95,6 +96,24 @@ Kirigami.Page {
 
                 Kirigami.Heading {
                     level: 2
+                    text: "Files changed"
+                }
+
+                Column {
+                    Repeater {
+                        model: root.git.filesChanged()
+                        delegate: Text {
+                            text: modelData
+                        }
+                    }
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                }
+
+                Kirigami.Heading {
+                    level: 2
                     text: "Comments"
                 }
 
@@ -132,7 +151,7 @@ Kirigami.Page {
     }
 
     Connections {
-        target: NetworkManager
+        target: root.connection
 
         function onPullRequestCommentsFinished(jsonResponse) {
             commentModel.loadData(jsonResponse)
@@ -143,6 +162,6 @@ Kirigami.Page {
     }
 
     Component.onCompleted: {
-        NetworkManager.getPullRequestComments(root.pullRequest.number)
+        root.connection.getPullRequestComments(root.pullRequest.number)
     }
 }

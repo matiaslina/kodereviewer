@@ -62,6 +62,12 @@ PullRequest::PullRequest(QJsonDocument &document, QObject *parent)
                                             Qt::ISODate);
     this->_updatedAt = QDateTime::fromString(document[QStringLiteral("updated_at")].toString(),
                                             Qt::ISODate);
+
+    auto head = document[QStringLiteral("head")].toObject();
+    _sourceRef = head[QStringLiteral("ref")].toString();
+
+    auto base = document[QStringLiteral("base")].toObject();
+    _targetRef = base[QStringLiteral("ref")].toString();
 }
 
 PullRequest::~PullRequest() = default;
@@ -89,6 +95,8 @@ QString PullRequest::description() const { return _description; }
 QDateTime PullRequest::createdAt() const { return _createdAt; }
 QDateTime PullRequest::updatedAt() const { return _updatedAt; }
 
+QString PullRequest::sourceRef() const { return _sourceRef; }
+QString PullRequest::targetRef() const { return _targetRef; }
 
 /***************************
  *       Comments

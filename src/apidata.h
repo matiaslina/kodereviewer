@@ -39,6 +39,9 @@ class PullRequest : public QObject {
     Q_PROPERTY(QDateTime createdAt READ createdAt)
     Q_PROPERTY(QDateTime updatedAt READ updatedAt)
 
+    Q_PROPERTY(QString sourceRef READ sourceRef NOTIFY sourceRefChanged)
+    Q_PROPERTY(QString targetRef READ targetRef NOTIFY targetRefChanged)
+
     QML_ELEMENT
 
 public:
@@ -75,10 +78,15 @@ public:
     QDateTime createdAt() const;
     QDateTime updatedAt() const;
 
+    QString sourceRef() const;
+    QString targetRef() const;
+
 signals:
     void titleChanged(QString title);
     void numberChanged(int number);
     void descriptionChanged(QString description);
+    void sourceRefChanged(QString ref);
+    void targetRefChanged(QString ref);
 
 private:
     unsigned int _id;
@@ -99,6 +107,9 @@ private:
 
     QDateTime _createdAt;
     QDateTime _updatedAt;
+
+    QString _sourceRef;
+    QString _targetRef;
 
 };
 

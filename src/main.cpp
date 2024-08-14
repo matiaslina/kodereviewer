@@ -13,6 +13,7 @@
 #include "networkmanager.h"
 #include "linemodel.h"
 #include "apidata.h"
+#include "gitbackend.h"
 
 int main(int argc, char *argv[])
 {
@@ -32,13 +33,12 @@ int main(int argc, char *argv[])
     QSettings settings;
     QQmlApplicationEngine engine;
 
-    qmlRegisterType<NetworkManager>("org.kde.kodereviewer.network", 1, 0, "NetworkManager");
-    engine.singletonInstance<NetworkManager*>("org.kde.kodereviewer.network", "NetworkManager");
-
-    qmlRegisterType<PullRequestModel>("org.kde.kodereviewer.models", 1, 0, "PullRequestModel");
-    qmlRegisterType<CommentModel>("org.kde.kodereviewer.models", 1, 0, "CommentModel");
-    qmlRegisterType<LineModel>("org.kde.kodereviewer.models", 1, 0, "LineModel");
-    qmlRegisterType<PullRequest>("org.kde.kodereviewer.types", 1, 0, "PullRequest");
+    qmlRegisterType<NetworkManager>("org.kde.kodereviewer", 1, 0, "NetworkManager");
+    qmlRegisterType<PullRequestModel>("org.kde.kodereviewer", 1, 0, "PullRequestModel");
+    qmlRegisterType<CommentModel>("org.kde.kodereviewer", 1, 0, "CommentModel");
+    qmlRegisterType<LineModel>("org.kde.kodereviewer", 1, 0, "LineModel");
+    qmlRegisterType<PullRequest>("org.kde.kodereviewer", 1, 0, "PullRequest");
+    qmlRegisterType<GitBackend>("org.kde.kodereviewer", 1, 0, "GitBackend");
 
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
     engine.loadFromModule("org.kde.kodereviewer", "Main");

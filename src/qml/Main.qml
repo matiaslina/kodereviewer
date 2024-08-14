@@ -5,8 +5,7 @@ import QtQuick.Layouts 6.7
 
 import org.kde.kirigami as Kirigami
 
-import org.kde.kodereviewer.models
-import org.kde.kodereviewer.types
+import org.kde.kodereviewer
 
 
 Kirigami.ApplicationWindow {
@@ -26,21 +25,41 @@ Kirigami.ApplicationWindow {
     property string token: settings.githubToken
     property PullRequest currentPullRequest
 
+    property NetworkManager connection: NetworkManager {
+        owner: root.username
+        repo: root.repositoryName
+
+        onPullRequestFinished: (jsonResponse) => {
+            pullRequestModel.loadData(jsonResponse)
+        }
+        onErrorOcurred: (err) => {
+            console.log(err);
+        }
+    }
+
     /* Size settings */
     width: 600
     height: 400
 
     title: "Kode Reviewer"
+
     PullRequestModel {
         id: pullRequestModel
+    }
+
+    GitBackend {
+        id: gitBackend
+        path: root.repositoryRoot
+        sourceRef: root.currentPullRequest ? root.currentPullRequest.sourceRef : ""
+        targetRef: root.currentPullRequest ? root.currentPullRequest.targetRef : ""
     }
 
     globalDrawer: ProjectDrawer {
         id: drawer
         model: pullRequestModel ? pullRequestModel : undefined
-        onPullRequestSelected: (pr) => {
-            print(pr.title)
-            root.currentPullRequest = pr
+        onPullRequestSelected: pr => {
+            print(pr.title);
+            root.currentPullRequest = pr;
         }
     }
 
@@ -54,30 +73,22 @@ Kirigami.ApplicationWindow {
     Component {
         id: pullRequestOverviewPage
         PullRequestOverviewPage {
-            pullRequest: currentPullRequest
+            pullRequest: root.currentPullRequest
+            connection: root.connection
+            git: gitBackend
         }
     }
 
     onCurrentPullRequestChanged: {
-        pageStack.replace(pullRequestOverviewPage)
-    }
-
-
-    Connections {
-        target: NetworkManager
-
-        function onPullRequestFinished(jsonResponse) {
-            print("Loading data!")
-            pullRequestModel.loadData(jsonResponse)
+        if (currentPullRequest) {
+            gitBackend.sourceRef = currentPullRequest.sourceRef
+            gitBackend.targetRef = currentPullRequest.targetRef
         }
-        function onErrorOcurred(err) {
-            console.log(err);
-        }
+        pageStack.replace(pullRequestOverviewPage);
     }
 
     Component.onCompleted: {
-        NetworkManager.setUrl(root.username, root.repositoryName)
-        //drawer.loadPullRequests()
-        NetworkManager.getPullRequests()
+        connection.getPullRequests();
+        console.info(gitBackend.path);
     }
 }

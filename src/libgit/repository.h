@@ -1,4 +1,5 @@
 #ifndef REPOSITORY_H
+#define REPOSITORY_H
 
 #include <QObject>
 
@@ -10,10 +11,8 @@ extern "C" {
 }
 #endif
 
-void initLibGit();
-void shutdownLibGit();
+class GitObject;
 
-bool handleError(int error);
 
 class Reference
 {
@@ -45,9 +44,9 @@ public:
     ~Repository();
 
     Reference reference(QString &shorthand);
+    GitObject revparseSingle(QString &spec);
 
-private:
-    git_repository *_repository;
+    git_repository *ptr;
 };
 
 #endif

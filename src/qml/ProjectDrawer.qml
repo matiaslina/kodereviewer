@@ -6,8 +6,7 @@ import org.kde.kirigamiaddons.delegates as Delegates
 import org.kde.kitemmodels 1 as KItemModels
 import org.kde.kirigami as Kirigami
 
-import org.kde.kodereviewer.models
-import org.kde.kodereviewer.types
+import org.kde.kodereviewer
 
 Kirigami.OverlayDrawer {
     id: drawer

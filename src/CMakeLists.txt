@@ -2,6 +2,8 @@ add_executable(kode-reviewer)
 
 add_definitions(-fexceptions)
 add_definitions(-O0)
+add_definitions(-DQT_QML_GENERATE_QMLLS_INI=ON)
+set(QT_QML_GENERATE_QQMLLS_INI ON)
 remove_definitions(-DQT_NO_KEYWORDS)
 remove_definitions(-DQT_NO_CAST_FROM_ASCII)
 
@@ -22,6 +24,14 @@ target_sources(kode-reviewer
     apidata.cpp
 
     linemodel.cpp
+
+    gitbackend.cpp
+    libgit/repository.cpp
+    libgit/gitobject.cpp
+    libgit/utils.cpp
+    libgit/commit.cpp
+    libgit/tree.cpp
+    libgit/diff.cpp
 )
 
 ecm_target_qml_sources(kode-reviewer
@@ -45,6 +55,7 @@ target_link_libraries(kode-reviewer
     KF6::I18n
     KF6::CoreAddons
     KF6::IconThemes
+    LibGit2::LibGit2
 )
 
 install(TARGETS kode-reviewer  ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
@@ -56,6 +67,11 @@ target_sources(git-test
     PRIVATE
     git-test.cpp
     libgit/repository.cpp
+    libgit/gitobject.cpp
+    libgit/utils.cpp
+    libgit/commit.cpp
+    libgit/tree.cpp
+    libgit/diff.cpp
 )
 
 target_link_libraries(git-test
