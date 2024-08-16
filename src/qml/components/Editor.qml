@@ -39,6 +39,23 @@ QQC2.Control {
                 definition: Repository.definitionForFileName(root.filename)
             }
 
+
+            Rectangle {
+                //width: textEdit.width - Kirigami.Units.gridUnit
+                radius: 1
+                height: 300
+                color: "#aceebb"
+                z: -1
+                anchors {
+                    top: textEdit.top
+                    topMargin: Kirigami.Units.smallSpacing
+                    left: lineNumberColumn.right
+                    leftMargin: Kirigami.Units.smallSpacing
+                    right: textEdit.right
+                    rightMargin: Kirigami.Units.smallSpacing
+                }
+            }
+
             ColumnLayout {
                 id: lineNumberColumn
                 anchors {
