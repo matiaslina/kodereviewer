@@ -14,8 +14,18 @@ Blob::~Blob()
     }
 }
 
+bool Blob::isInitialized()
+{
+    return ptr != nullptr;
+}
+
+QString Blob::id() const
+{
+    return QString::fromUtf8((const char*)git_blob_id(ptr));
+}
+
 QString Blob::contents() const
 {
-    const char *content = (const char *) git_blob_rawcontent(ptr);
+    unsigned char *content = (unsigned char *) git_blob_rawcontent(ptr);
     return QString::fromUtf8(content);
 }

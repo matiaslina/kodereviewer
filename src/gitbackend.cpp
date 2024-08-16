@@ -1,7 +1,10 @@
 #include "gitbackend.h"
 #include "libgit/gitobject.h"
-#include "libgit/tree.h"
 #include "libgit/diff.h"
+#include "libgit/gitobject.h"
+#include "libgit/blob.h"
+#include "libgit/patch.h"
+#include <QDebug>
 
 GitBackend::GitBackend(QObject *parent)
     : QObject(parent)
@@ -77,8 +80,8 @@ QStringList GitBackend::filesChanged()
     auto sourceObj = repository->revparseSingle(_sourceRef);
     auto targetObj = repository->revparseSingle(_targetRef);
 
-    auto sourceTree = sourceObj.commit().tree();
-    auto targetTree = targetObj.commit().tree();
+    auto sourceTree = sourceObj->commit().tree();
+    auto targetTree = targetObj->commit().tree();
 
     Diff diff(*repository, sourceTree, targetTree);
 
@@ -100,7 +103,7 @@ QString GitBackend::sourceFileContents(QString filename) const
         return "";
     }
 
-    GitTree tree = repository->revparseSingle(_sourceRef).commit().tree();
+    GitTree tree = sourceTree();
     GitTreeEntry entry = tree.findEntryByName(filename);
     return entry.contents();
 }
@@ -110,7 +113,36 @@ QString GitBackend::targetFileContents(QString filename) const
     if (!isRepositoryInitialized() || _targetRef.isEmpty()) {
         return QStringLiteral("");
     }
-    GitTree tree = repository->revparseSingle(_targetRef).commit().tree();
+    GitTree tree = targetTree();
     GitTreeEntry entry = tree.findEntryByName(filename);
     return entry.contents();
+}
+
+QString GitBackend::diff(QString filename) const
+{
+    if (!isRepositoryInitialized() || _targetRef.isEmpty() || _sourceRef.isEmpty()) {
+        return QStringLiteral("");
+    }
+    auto source = sourceTree();
+    auto target = targetTree();
+
+    Diff d = Diff(*repository, target, source, filename);
+    qDebug() << "Returning " << d.toString();
+    return d.toString();
+}
+
+
+/***********
+ * Private
+ ***********/
+
+GitTree GitBackend::targetTree() const
+{
+    return repository->revparseSingle(_targetRef)->commit().tree();
+}
+
+GitTree GitBackend::sourceTree() const
+{
+    Commit commit = repository->revparseSingle(_sourceRef)->commit();
+    return commit.tree();
 }

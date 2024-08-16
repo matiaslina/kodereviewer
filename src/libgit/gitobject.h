@@ -15,6 +15,7 @@ extern "C" {
 
 class Commit;
 class GitTree;
+class Blob;
 
 class GitObject {
 public:
@@ -33,18 +34,17 @@ public:
     GitObject(git_object* obj);
     ~GitObject();
 
-    static GitObject revparseSingle(Repository& repository, QString revspec);
+    static GitObject *revparseSingle(Repository& repository, QString revspec);
 
     git_object* inner();
     Type type() const;
     QString typeStr() const;
 
-    git_blob* blob() const;
+    Blob blob() const;
     Commit commit() const;
     GitTree tree() const;
     git_tag* tag() const;
 
-private:
     git_object* ptr;
 };
 

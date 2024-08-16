@@ -95,6 +95,9 @@ void NetworkManager::replyFinished(QNetworkReply* reply)
             emit pullRequestCommentsFinished(document.toJson());
         } else if (url.endsWith(tr(".diff"))) {
             emit diffFinished(new QString(QString::fromUtf8(contents)));
+        } else if (url.endsWith(tr("files"))) {
+            auto document = QJsonDocument::fromJson(contents);
+            emit pullRequestFilesFinished(document.toJson());
         }
         break;
     case QNetworkReply::ProtocolUnknownError:
@@ -114,6 +117,12 @@ void NetworkManager::getPullRequests()
 void NetworkManager::getPullRequestComments(int pullRequestNumber)
 {
     manager->get(requestFactory->createRequest(tr("/issues/%1/comments").arg(pullRequestNumber)));
+}
+
+void NetworkManager::getPullRequestFiles(int pullRequestNumber)
+{
+    manager->get(requestFactory->createRequest(tr("/pulls/%1/files")
+                                               .arg(pullRequestNumber)));
 }
 
 void NetworkManager::getComments(int pullRequestNumber)

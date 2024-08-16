@@ -49,7 +49,7 @@ PullRequest::PullRequest(QJsonDocument &document, QObject *parent)
     } else if (jsonState == QStringLiteral("closed")) {
         this->_state = State::CLOSED;
     } else {
-        Q_ASSERT(false);
+        qDebug() << "Unknown state: " << jsonState;
     }
     this->_title = document[QStringLiteral("title")].toString();
 
@@ -212,3 +212,29 @@ int ReviewThread::line()
     }
     return -1;
 }
+
+File::File(QObject *parent)
+    : QObject(parent)
+{}
+
+File::File(QJsonDocument &doc, QObject *parent)
+    : QObject(parent)
+{
+    this->_sha = doc["sha"].toString();
+    this->_filename = doc["filename"].toString();
+    this->_status = doc["status"].toString();
+    this->_additions = doc["additions"].toInt();
+    this->_deletions = doc["deletions"].toInt();
+    this->_changes = doc["changes"].toInt();
+    this->_patch = doc["patch"].toString();
+}
+
+File::~File() = default;
+
+QString File::sha() const { return _sha; }
+QString File::filename() const { return _filename; }
+QString File::status() const { return _status; }
+int File::additions() const { return _additions; }
+int File::deletions() const { return _deletions; }
+int File::changes() const { return _changes; }
+QString File::patch() const { return _patch; }

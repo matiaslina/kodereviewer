@@ -5,6 +5,7 @@
 
 #include "commit.h"
 #include "tree.h"
+#include "blob.h"
 
 GitObject::GitObject()
     : ptr(nullptr)
@@ -24,12 +25,12 @@ GitObject::~GitObject()
     }
 }
 
-GitObject GitObject::revparseSingle(Repository& repository, QString revspec)
+GitObject *GitObject::revparseSingle(Repository& repository, QString revspec)
 {
     git_object* obj = nullptr;
     git_revparse_single(&obj, repository.ptr, revspec.toStdString().c_str());
 
-    return GitObject(obj);
+    return new GitObject(obj);
 }
 
 git_object* GitObject::inner()
@@ -50,10 +51,10 @@ QString GitObject::typeStr() const
     return QString::fromUtf8(git_object_type2string(t));
 }
 
-git_blob* GitObject::blob() const
+Blob GitObject::blob() const
 {
     if (type() == GitObject::Type::BLOB) {
-        return ((git_blob*)ptr);
+        return Blob((git_blob*)ptr);
     }
     return nullptr;
 }

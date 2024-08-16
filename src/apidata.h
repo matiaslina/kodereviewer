@@ -204,4 +204,49 @@ private:
     std::vector<Review *> childs;
 };
 
+
+class File : public QObject {
+    Q_OBJECT
+
+    Q_PROPERTY(QString sha READ sha NOTIFY shaChanged)
+    Q_PROPERTY(QString filename READ filename NOTIFY filenameChanged)
+    Q_PROPERTY(QString status READ status NOTIFY statusChanged)
+    Q_PROPERTY(int additions READ additions NOTIFY additionsChanged)
+    Q_PROPERTY(int deletions READ deletions NOTIFY deletionsChanged)
+    Q_PROPERTY(int changes READ changes NOTIFY changesChanged)
+    Q_PROPERTY(QString patch READ patch NOTIFY patchChanged)
+
+    QML_ELEMENT
+public:
+    File(QObject *parent = nullptr);
+    File(QJsonDocument &document, QObject *parent = nullptr);
+    ~File();
+
+    QString sha() const;
+    QString filename() const;
+    QString status() const;
+    int additions() const;
+    int deletions() const;
+    int changes() const;
+    QString patch() const;
+
+signals:
+    void shaChanged(QString sha);
+    void filenameChanged(QString filename);
+    void statusChanged(QString status);
+    void additionsChanged(int additions);
+    void deletionsChanged(int deletions);
+    void changesChanged(int changes);
+    void patchChanged(QString patch);
+
+private:
+    QString _sha;
+    QString _filename;
+    QString _status;
+    int _additions;
+    int _deletions;
+    int _changes;
+    QString _patch;
+};
+
 #endif

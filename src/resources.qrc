@@ -11,5 +11,6 @@
         <file>qml/components/FileList.qml</file>
         <file>qml/components/PullRequestOverview.qml</file>
         <file>qml/components/RoundedImage.qml</file>
+        <file>qml/components/DrawerHeader.qml</file>
     </qresource>
 </RCC>

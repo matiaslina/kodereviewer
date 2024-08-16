@@ -39,13 +39,19 @@ public:
 class Diff {
 public:
     Diff();
+    Diff(Repository &repo, QString pathspec);
     Diff(Repository& repo, GitTree& t1, GitTree& t2);
+    Diff(Repository& repo, GitTree& t1, GitTree& t2, QString pathspec);
     ~Diff();
 
     int numDelta() const;
     Delta* delta(size_t idx);
     std::vector<Delta*> deltas();
+    QString toString() const;
 
+    git_diff_options singleFileOptions(QString &filename);
+
+    git_repository *repository;
     git_diff* ptr;
     git_diff_stats* stats;
 };

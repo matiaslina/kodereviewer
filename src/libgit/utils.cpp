@@ -13,13 +13,14 @@ void shutdownLibGit()
     git_libgit2_shutdown();
 }
 
-bool handleError(int error)
+bool handleError(int error, QString what)
 {
     if (error < 0) {
         const git_error *e = git_error_last();
-        qDebug() << QString::fromUtf8("Error %1/%2: %3").arg(error)
+        qDebug() << QString::fromUtf8("Error %1/%2: %3: %4").arg(error)
             .arg(e->klass)
-            .arg(e->message);
+            .arg(e->message)
+            .arg(what);
         return true;
     }
     return false;

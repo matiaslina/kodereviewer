@@ -15,7 +15,7 @@ public:
     const git_oid* id() const;
     QString name() const;
     QString contents() const;
-    GitObject *toObject() const;
+    GitObject toGitObject() const;
 
 private:
     const git_tree_entry* entry;

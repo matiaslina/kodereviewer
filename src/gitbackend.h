@@ -2,6 +2,7 @@
 #define GITBACKEND_H
 
 #include "libgit/repository.h"
+#include "libgit/tree.h"
 
 #include <qqmlintegration.h>
 
@@ -38,6 +39,7 @@ public slots:
 
     QString sourceFileContents(QString filename) const;
     QString targetFileContents(QString filename) const;
+    QString diff(QString filename) const;
 
 signals:
     void pathChanged(QString path);
@@ -50,6 +52,9 @@ private:
 
     QString _sourceRef;
     QString _targetRef;
+
+    GitTree targetTree() const;
+    GitTree sourceTree() const;
 
     Repository *repository;
 };

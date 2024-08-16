@@ -30,14 +30,22 @@ QString GitTreeEntry::contents() const
 {
     git_object *o = nullptr;
     int err = git_tree_entry_to_object(&o, parent->owner(), entry);
-    if (handleError(err)) {
+    if (handleError(err, "GitEntry::contents()")) {
         return QStringLiteral("");
     }
 
     GitObject obj(o);
 
     Blob blob = obj.blob();
-    return blob.contents();
+    QString contents = blob.contents();
+    return contents;
+}
+
+GitObject GitTreeEntry::toGitObject() const
+{
+    git_object *obj;
+    handleError(git_tree_entry_to_object(&obj, parent->owner(), entry));
+    return GitObject(obj);
 }
 
 GitTree::GitTree()

@@ -9,7 +9,9 @@ Kirigami.Page {
     id: root
     property PullRequest pullRequest
     property GitBackend git
-    property string file
+    property File file
+
+    title: `${pullRequest.title} - ${file.filename}`
 
     actions: [
         Kirigami.Action {
@@ -55,16 +57,20 @@ Kirigami.Page {
         anchors.fill: parent
         Editor {
             id: sourceEditor
-            text: root.git.sourceFileContents(root.file)
+            text: root.git.sourceFileContents(root.file.filename)
+            filename: root.file.filename
         }
 
         Editor {
             id: targetEditor
-            text: root.git.targetFileContents(root.file)
+            text: root.git.targetFileContents(root.file.filename)
+            filename: root.file.filename
         }
 
         Editor {
-            text: `Diff ${root.file}`
+            id: diffEditor
+            text: root.file.patch
+            filename: "a.patch"
         }
     }
 }

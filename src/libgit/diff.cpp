@@ -2,6 +2,7 @@
 #include "repository.h"
 #include "tree.h"
 #include "utils.h"
+#include <git2/diff.h>
 
 DiffFile::DiffFile(const git_diff_file& f)
     : file(f)
@@ -34,16 +35,50 @@ DiffFile Delta::newFile() { return DiffFile(ptr->new_file); }
 //// DIFF
 
 Diff::Diff()
-    : ptr(nullptr)
+    : repository(nullptr)
+    , ptr(nullptr)
     , stats(nullptr)
 {
 }
 
-Diff::Diff(Repository& repo, GitTree& t1, GitTree& t2)
-    : ptr(nullptr)
+Diff::Diff(Repository &repo, QString pathspec)
+    : repository(repo.ptr)
+    , ptr(nullptr)
     , stats(nullptr)
 {
-    int error = git_diff_tree_to_tree(&ptr, repo.ptr, t1.ptr, t2.ptr, nullptr);
+    git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
+    std::string stdpathstring = pathspec.toStdString();
+    char *cpathspec = (char *) stdpathstring.c_str();
+
+    opts.context_lines = 3;
+    opts.interhunk_lines = 1;
+    opts.flags |= GIT_DIFF_INCLUDE_IGNORED | GIT_DIFF_INCLUDE_UNTRACKED;
+    opts.pathspec.strings = &cpathspec;
+    opts.pathspec.count = 1;
+
+    handleError(git_diff_index_to_workdir(&ptr, repository, NULL, &opts));
+    handleError(git_diff_get_stats(&stats, ptr));
+}
+
+Diff::Diff(Repository& repo, GitTree& t1, GitTree& t2)
+    : repository(repo.ptr)
+    , ptr(nullptr)
+    , stats(nullptr)
+{
+    int error = git_diff_tree_to_tree(&ptr, repository, t1.ptr, t2.ptr, nullptr);
+    handleError(error);
+
+    error = git_diff_get_stats(&stats, ptr);
+    handleError(error);
+}
+
+Diff::Diff(Repository& repo, GitTree& t1, GitTree& t2, QString pathspec)
+    : repository(repo.ptr)
+    , ptr(nullptr)
+    , stats(nullptr)
+{
+    const git_diff_options opts = singleFileOptions(pathspec);
+    int error = git_diff_tree_to_tree(&ptr, repository, t1.ptr, t2.ptr, &opts);
     handleError(error);
 
     error = git_diff_get_stats(&stats, ptr);
@@ -80,4 +115,27 @@ std::vector<Delta*> Diff::deltas()
         retval.push_back(delta(i));
     }
     return retval;
+}
+
+QString Diff::toString() const
+{
+    git_buf buf;
+    handleError(git_diff_to_buf(&buf, ptr, GIT_DIFF_FORMAT_PATCH));
+
+    return QString::fromUtf8(buf.ptr, buf.size);
+}
+
+git_diff_options Diff::singleFileOptions(QString &filename)
+{
+    git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
+    std::string stdpathstring = filename.toStdString();
+    char *cpathspec = (char *) stdpathstring.c_str();
+
+    opts.context_lines = 3;
+    opts.interhunk_lines = 1;
+    opts.flags |= GIT_DIFF_INCLUDE_IGNORED | GIT_DIFF_INCLUDE_UNTRACKED;
+    opts.pathspec.strings = &cpathspec;
+    opts.pathspec.count = 1;
+
+    return opts;
 }

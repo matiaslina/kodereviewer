@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(libgit)
 
-string(REPLACE "-mno-direct-extern-access" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "") # works
 
 remove_definitions(-DQT_NO_KEYWORDS)
@@ -14,9 +13,14 @@ add_library(libgit
   diff.cpp
   gitobject.cpp
   repository.cpp
+  patch.cpp
   tree.cpp
   utils.cpp
 )
+
+target_compile_options(libgit INTERFACE "$<$<CXX_COMPILER_ID:GNU>:-mno-direct-extern-access>")
+target_compile_options(libgit INTERFACE "$<$<CXX_COMPILER_ID:Clang>:-fno-direct-access-external-data>")
+
 target_link_libraries(libgit
   PRIVATE
   Qt6::Core

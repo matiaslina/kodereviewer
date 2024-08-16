@@ -10,6 +10,8 @@ class Blob
     Blob(git_blob *blob);
     ~Blob();
 
+    bool isInitialized();
+    QString id() const;
     QString contents() const;
 
     git_blob *ptr = nullptr;

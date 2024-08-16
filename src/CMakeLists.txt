@@ -9,8 +9,6 @@ add_subdirectory(libgit)
 
 add_executable(kode-reviewer resources.qrc $<TARGET_OBJECTS:libgit>)
 
-add_definitions(-fexceptions)
-add_definitions(-O0)
 add_definitions(-DQT_QML_GENERATE_QMLLS_INI=ON)
 set(QT_QML_GENERATE_QQMLLS_INI ON)
 remove_definitions(-DQT_NO_KEYWORDS)
@@ -31,6 +29,7 @@ target_sources(kode-reviewer
     pullrequestmodel.cpp
     networkmanager.cpp
     commentsmodel.cpp
+    filemodel.cpp
     apidata.cpp
 
     linemodel.cpp
@@ -46,10 +45,12 @@ ecm_target_qml_sources(kode-reviewer
     qml/PullRequestOverviewPage.qml
     qml/ReviewFilePage.qml
 
+    qml/components/DrawerHeader.qml
     qml/components/RoundedImage.qml
     qml/components/CommentControl.qml
     qml/components/CommentDelegate.qml
     qml/components/FileList.qml
+    qml/components/FileDelegate.qml
     qml/components/PullRequestOverview.qml
     qml/components/Editor.qml
 )

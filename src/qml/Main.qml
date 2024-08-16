@@ -25,7 +25,8 @@ Kirigami.ApplicationWindow {
     property string repositoryRoot: "/home/matias/Workspace/miniaudio-test"
     property string token: settings.githubToken
     property PullRequest currentPullRequest
-    property string currentReviewFile: ""
+    property File currentReviewFile: File {}
+    property string currentPage: ""
 
     property NetworkManager connection: NetworkManager {
         owner: root.username
@@ -62,9 +63,14 @@ Kirigami.ApplicationWindow {
     globalDrawer: ProjectDrawer {
         id: drawer
         model: pullRequestModel ? pullRequestModel : undefined
+        connection: root.connection
         onPullRequestSelected: pr => {
             print(pr.title);
             root.currentPullRequest = pr;
+        }
+
+        onFileSelected: file => {
+            root.currentReviewFile = file
         }
     }
 
@@ -98,7 +104,15 @@ Kirigami.ApplicationWindow {
             gitBackend.sourceRef = currentPullRequest.sourceRef
             gitBackend.targetRef = currentPullRequest.targetRef
         }
+        currentPage = "PullRequestOverview"
         pageStack.replace(pullRequestOverviewPage);
+    }
+
+    onCurrentReviewFileChanged: {
+        if (currentReviewFile && currentPage != "ReviewFilePage") {
+            currentPage = "ReviewFilePage"
+            pageStack.replace(reviewFilePage)
+        }
     }
 
     function switchToReviewFile(file) {

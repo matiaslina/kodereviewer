@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick 2.15 // Removing version break onCurrentItemChanged
 import QtQuick.Layouts
 import QtQuick.Controls as Controls
@@ -13,10 +14,13 @@ Kirigami.OverlayDrawer {
 
     Kirigami.Theme.colorSet: Kirigami.Theme.View
     property color backgroundColor: Kirigami.Theme.backgroundColor
-    required property PullRequestModel model
     readonly property int narrowWidth: Kirigami.Units.gridUnit * 3
     readonly property int largeWidth: Kirigami.Units.gridUnit * 15
+
+    required property PullRequestModel model
+    required property NetworkManager connection
     signal pullRequestSelected(PullRequest pullRequest)
+    signal fileSelected(File file)
 
     property bool isWide: true
     property bool changeWidth: true
@@ -31,11 +35,23 @@ Kirigami.OverlayDrawer {
 
     closePolicy: modal ? Controls.PopupCloseOnReleaseOutside : Controls.Popup.NoAutoClose
 
+
+
+    property FileModel fileListModel: FileModel {}
+
     KItemModels.KSortFilterProxyModel {
         id: filterModel
-        sourceModel: model
+        sourceModel: drawer.model
         filterRoleName: "title"
         sortRoleName: "number"
+        sortOrder: Qt.AscendingOrder
+    }
+
+    KItemModels.KSortFilterProxyModel {
+        id: fileFilterModel
+        sourceModel: drawer.fileListModel
+        filterRoleName: "filename"
+        sortRoleName: "filename"
         sortOrder: Qt.AscendingOrder
     }
 
@@ -54,67 +70,20 @@ Kirigami.OverlayDrawer {
             anchors.right: parent.right
 
 
-            RowLayout {
-                anchors.fill: parent
-                spacing: 0
-
-                Kirigami.SearchField {
-                    id: searchField
-                    Layout.fillWidth: true
-                    visible: drawer.isWide
-                    onTextChanged: {
-                        filterModel.filterString = text
-                    }
+            DrawerHeader {
+                drawer: drawer
+                toolbar: mainToolBar
+                onSearchChanged: (text) => {
+                    filterModel.filterString = text
+                    fileFilterModel.filterString = text
                 }
-
-                Controls.ToolButton {
-                    visible: mainToolBar.isWide
-                    Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
-                    Controls.ToolTip.visible: hovered
-                    Controls.ToolTip.text: "Refresh"
-                    action: Kirigami.Action {
-                        id: refreshAction
-                        icon.name: "view-refresh"
-                        onTriggered: {
-                            print("Refreshing")
-                        }
-                    }
-                }
-
-                Controls.ToolSeparator {
-                    visible: drawer.isWide
-                    orientation: Qt.Vertical
-                    Layout.fillHeight: true
-                    Layout.margins: Kirigami.Units.smallSpacing
-                }
-
-                Controls.ToolButton {
-                    visible: !Kirigami.Settings.isMobile
-                    Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
-                    Controls.ToolTip.visible: hovered
-                    Controls.ToolTip.text: (mainToolBar.isWide
-                                            ? i18n("Collapse sidebar")
-                                            : i18n("Expand sidebar")
-                                           ) + " (" + closeAction.shortcut + ")"
-                    Layout.fillWidth: !mainToolBar.isWide
-
-                    action: Kirigami.Action {
-                        id: closeAction
-                        icon.name: mainToolBar.isWide
-                            ? "sidebar-collapse-left-symbolic"
-                            : "sidebar-expand-symbolic"
-
-                        onTriggered: {
-                            drawer.close()
-                        }
-                    }
-                }
-
-
             }
         }
 
-        ColumnLayout {
+        Controls.ScrollView {
+            id: listView
+            Kirigami.Theme.inherit: true
+
             visible: drawer.isWide
 
             anchors.top: mainToolBar.bottom
@@ -122,40 +91,62 @@ Kirigami.OverlayDrawer {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
 
-            Controls.ScrollView {
-                id: scrollView
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+            Flickable {
+                id: mainFlickable
+                anchors.fill: parent
+                Controls.StackView {
+                    id: stackView
+                    anchors.fill: parent
+                    initialItem: pullRequestListView
+                }
 
-                ListView {
-                    id: view
+                Component {
+                    id: pullRequestListView
+                    ListView {
+                        id: view
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        model: filterModel
+                        clip: true
+                        delegate: Delegates.RoundedItemDelegate {
+                            required property int number
+                            required property string title
+                            required property int index
+                            highlighted: ListView.isCurrentItem
 
-                    //Kirigami.Theme.backgroundColor: drawer.backgroundColor
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    model: filterModel
-                    clip: true
-                    delegate: Delegates.RoundedItemDelegate {
-                        required property int number
-                        required property string title
-                        required property int index
-                        highlighted: ListView.isCurrentItem
-
-                        text: `${number} - ${title}`
-                        icon.name: "vcs-merge-request"
-                        onClicked: {
-                            view.currentIndex = index
-                            const pr = model.get(index)
-                            print(pr)
-                            drawer.pullRequestSelected(pr)
+                            text: `${number} - ${title}`
+                            icon.name: "vcs-merge-request"
+                            onClicked: {
+                                view.currentIndex = index
+                                const pr = drawer.model.get(index)
+                                root.connection.getPullRequestFiles(pr.number)
+                                drawer.pullRequestSelected(pr)
+                                stackView.push(fileListViewComponent)
+                            }
                         }
                     }
+                }
 
-                    onCurrentItemChanged: {
+                Component {
+                    id: fileListViewComponent
+                    FileList {
+                        model: fileListModel
+                        filterModel: fileFilterModel
+
+                        onFileSelected: (file) => {
+                            print("Selected File! " + file.filename)
+                            drawer.fileSelected(file)
+                        }
                     }
                 }
             }
+        }
+    }
+
+    Connections {
+        target: drawer.connection
+        function onPullRequestFilesFinished(jsonResponse) {
+            fileListModel.loadData(jsonResponse)
         }
     }
 }

@@ -13,40 +13,26 @@ Kirigami.Page {
     Kirigami.Theme.colorSet: Kirigami.Theme.View
     Kirigami.Theme.inherit: false
 
-    title: `${pullRequest.number} - ${pullRequest.title}`
+    title: pullRequest.title
 
     CommentModel {
         id: commentModel
     }
 
-    contentItem: QQC2.SplitView {
-        id: splitView
-        anchors.fill: parent
-        anchors.bottomMargin: root.implicitFooterHeight
-
-        FileList {
-            id: fileList
-            QQC2.SplitView.preferredWidth: Kirigami.Units.gridUnit * 8
-            model: root.git.targetRef && root.git.sourceRef ? root.git.filesChanged() : ["a"]
-
-            onFileSelected: (file) => {
-                print("Selected " + file)
-                applicationWindow().switchToReviewFile(file)
-            }
-        }
-        PullRequestOverview {
-            QQC2.SplitView.fillHeight: true
-            QQC2.SplitView.fillWidth: true
-            pullRequest: root.pullRequest
-            model: commentModel
-        }
+    contentItem: PullRequestOverview {
+        QQC2.SplitView.fillHeight: true
+        QQC2.SplitView.fillWidth: true
+        pullRequest: root.pullRequest
+        model: commentModel
     }
+
     Connections {
         target: root.connection
 
         function onPullRequestCommentsFinished(jsonResponse) {
             commentModel.loadData(jsonResponse)
         }
+
         function onErrorOcurred(err) {
             console.log(err);
         }

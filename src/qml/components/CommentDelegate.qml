@@ -32,14 +32,14 @@ Kirigami.AbstractCard {
                     level: 3
                     text: `@${root.username}`
                 }
-                Text {
+                QQC2.Label {
                     text: root.createdAt
                 }
             }
             Kirigami.Separator {
                 Layout.fillWidth: true
             }
-            Text {
+            QQC2.Label {
                 Layout.fillWidth: true
                 text: root.description
                 textFormat: Text.MarkdownText

@@ -10,6 +10,7 @@
 
 #include "pullrequestmodel.h"
 #include "commentsmodel.h"
+#include "filemodel.h"
 #include "networkmanager.h"
 #include "linemodel.h"
 #include "apidata.h"
@@ -40,8 +41,13 @@ int main(int argc, char *argv[])
     qmlRegisterType<NetworkManager>("org.kde.kodereviewer", 1, 0, "NetworkManager");
     qmlRegisterType<PullRequestModel>("org.kde.kodereviewer", 1, 0, "PullRequestModel");
     qmlRegisterType<CommentModel>("org.kde.kodereviewer", 1, 0, "CommentModel");
+    qmlRegisterType<FileModel>("org.kde.kodereviewer", 1, 0, "FileModel");
     qmlRegisterType<LineModel>("org.kde.kodereviewer", 1, 0, "LineModel");
+
     qmlRegisterType<PullRequest>("org.kde.kodereviewer", 1, 0, "PullRequest");
+    qmlRegisterType<File>("org.kde.kodereviewer", 1, 0, "File");
+
+
     qmlRegisterType<GitBackend>("org.kde.kodereviewer", 1, 0, "GitBackend");
 
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));

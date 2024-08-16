@@ -35,6 +35,7 @@ public slots:
 
     void getPullRequests(void);
     void getPullRequestComments(int pullRequestNumber);
+    void getPullRequestFiles(int pullRequestNumber);
 
     void getComments(int pullRequestNumber);
     void getDiff(QString diffUrl);
@@ -46,6 +47,7 @@ signals:
 
     void pullRequestFinished(QByteArray document);
     void pullRequestCommentsFinished(QByteArray document);
+    void pullRequestFilesFinished(QByteArray document);
     void errorOcurred(QJsonDocument* error);
 
 

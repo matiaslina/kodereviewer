@@ -22,11 +22,12 @@ ColumnLayout {
                 level: 1
                 text: root.pullRequest.title
             }
+
             Kirigami.Separator {
                 Layout.fillWidth: true
             }
 
-            Text {
+            QQC2.Label {
                 Layout.fillHeight: false
                 text: root.pullRequest.description
                 textFormat: Text.MarkdownText
@@ -43,6 +44,7 @@ ColumnLayout {
 
 
             Repeater {
+                visible: commentView.count > 0
                 id: commentView
                 Layout.fillHeight: true
                 Layout.fillWidth: true

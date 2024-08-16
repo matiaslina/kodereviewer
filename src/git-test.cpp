@@ -9,6 +9,8 @@
 #include "libgit/commit.h"
 #include "libgit/diff.h"
 #include "libgit/tree.h"
+#include "libgit/patch.h"
+#include "libgit/blob.h"
 #include <git2.h>
 
 void handle_error(int error)
@@ -46,21 +48,24 @@ int main(int argc, char** argv)
         auto obj = r.revparseSingle(a);
         auto obj2 = r.revparseSingle(master);
 
-        qDebug() << obj.typeStr();
-        qDebug() << obj2.typeStr();
+        qDebug() << obj->typeStr();
+        qDebug() << obj2->typeStr();
 
-        auto t1 = obj.commit().tree();
-        auto t2 = obj2.commit().tree();
+        auto t1 = obj->commit().tree();
+        auto t2 = obj2->commit().tree();
 
-        auto diff = Diff(r, t1, t2);
+        auto diff = Diff(r, t1, t2, QString::fromUtf8("README.org"));
 
         qDebug() << "Deltas: " << diff.numDelta();
         for (auto d : diff.deltas()) {
             qDebug() << "Filename: " << d->newFile().path();
             qDebug() << "Contents!";
-            auto entry = t1.findEntryByName(d->newFile().path());
-            qDebug() << entry.contents();
+            auto newEntry = t1.findEntryByName(d->newFile().path());
+            qDebug() << newEntry.contents();
         }
+
+        qDebug() << "Diff:";
+        qDebug() << diff.toString();
     }
     return 0;
 }
