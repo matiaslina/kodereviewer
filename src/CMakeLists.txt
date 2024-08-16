@@ -26,15 +26,19 @@ ecm_add_qml_module(kode-reviewer
 target_sources(kode-reviewer
     PRIVATE
     main.cpp
-    pullrequestmodel.cpp
-    networkmanager.cpp
-    commentsmodel.cpp
-    filemodel.cpp
+
     apidata.cpp
 
+    # models
     linemodel.cpp
+    pullrequestmodel.cpp
+    commentsmodel.cpp
+    filemodel.cpp
 
+    # Backends
     gitbackend.cpp
+    networkmanager.cpp
+
 )
 
 ecm_target_qml_sources(kode-reviewer
