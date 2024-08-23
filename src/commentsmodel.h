@@ -31,6 +31,7 @@ public:
 
 public slots:
     void loadData(QByteArray data);
+    void addComment(QByteArray data);
 
 private:
     std::vector<Comment*> comments;

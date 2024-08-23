@@ -3,70 +3,56 @@ import QtQuick.Controls 6 as QQC2
 import QtQuick.Layouts 6.7
 
 import org.kde.kirigami as Kirigami
+import org.kde.kirigamiaddons.components as KirigamiComponents
+
 import org.kde.kodereviewer
 
-QQC2.ScrollView {
-
+ListView {
     id: root
-    required property PullRequest pullRequest
-    required property CommentModel model
-    anchors.fill: parent
 
-    ColumnLayout {
+    required property PullRequest pullRequest
+    spacing: Kirigami.Units.largeSpacing * 2
+    topMargin:  Kirigami.Units.largeSpacing * 2
+    rightMargin: Kirigami.Units.largeSpacing * 2
+    leftMargin: Kirigami.Units.largeSpacing * 2
+    bottomMargin: Kirigami.Units.largeSpacing * 2 + commentToolbar.height
+
+
+    header: ColumnLayout {
         id: mainLayout
-        anchors.fill: parent
-        anchors.margins: Kirigami.Units.largeSpacing
+        width: ListView.view ? ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin : 0
 
         Kirigami.Heading {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter
             level: 1
             text: root.pullRequest ? root.pullRequest.title : ""
         }
 
-        Kirigami.Separator {
+        Kirigami.ListSectionHeader {
             Layout.fillWidth: true
+            text: "description"
         }
 
         QQC2.Label {
+            Layout.fillWidth: true
             Layout.fillHeight: false
             text: root.pullRequest ? root.pullRequest.description : ""
             textFormat: Text.MarkdownText
         }
 
-        Kirigami.Separator {
+        Kirigami.ListSectionHeader {
             Layout.fillWidth: true
-        }
-
-        Kirigami.Heading {
-            level: 2
             text: "Comments"
         }
+    }
 
+    delegate: CommentDelegate {}
 
-        Repeater {
-            visible: commentView.count > 0
-            id: commentView
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            model: root.model
-            delegate: CommentDelegate {}
-        }
-
-
-        Item {
-            visible: commentView.count === 0
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            ColumnLayout {
-                anchors.centerIn: parent
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: "Loading comments..."
-                }
-                QQC2.BusyIndicator {
-                    Layout.alignment: Qt.AlignHCenter
-                }
-            }
-        }
-
+    Kirigami.PlaceholderMessage {
+        anchors.centerIn: parent
+        width: parent.width - (Kirigami.Units.largeSpacing * 4)
+        visible: root.count === 0
+        text: "Loading comments..."
     }
 }

@@ -1,9 +1,11 @@
 #include "networkmanager.h"
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QNetworkReply>
 #include <QSettings>
 #include <qnetworkaccessmanager.h>
 #include <qnetworkreply.h>
+#include <QRegularExpression>
 
 NetworkManager::NetworkManager(QObject* parent)
     : QObject(parent)
@@ -74,6 +76,11 @@ void NetworkManager::setUrl(QString owner, QString repo)
     requestFactory->setBaseUrl(base);
 }
 
+bool matchUrl(QString pattern, QString url)
+{
+    return QRegularExpression(pattern).match(url).hasMatch();
+}
+
 void NetworkManager::replyFinished(QNetworkReply* reply)
 {
     QString url = reply->url().toString();
@@ -87,15 +94,19 @@ void NetworkManager::replyFinished(QNetworkReply* reply)
 
     switch (reply->error()) {
     case QNetworkReply::NoError:
-        if (url.endsWith(tr("pulls"))) {
+        if (matchUrl("/pulls$", url)) {
             auto document = QJsonDocument::fromJson(contents);
             emit pullRequestFinished(document.toJson());
-        } else if (url.endsWith(tr("comments"))) {
+        } else if (matchUrl("/issues/\\d+/comments$", url)) {
             auto document = QJsonDocument::fromJson(contents);
-            emit pullRequestCommentsFinished(document.toJson());
+            if (reply->operation() == QNetworkAccessManager::Operation::GetOperation) {
+                emit pullRequestCommentsFinished(document.toJson());
+            } else if (reply->operation() == QNetworkAccessManager::Operation::PostOperation){
+                emit pullRequestPostCommentFinished(document.toJson());
+            }
         } else if (url.endsWith(tr(".diff"))) {
             emit diffFinished(new QString(QString::fromUtf8(contents)));
-        } else if (url.endsWith(tr("files"))) {
+        } else if (matchUrl("/pulls/\\d+/files$", url)) {
             auto document = QJsonDocument::fromJson(contents);
             emit pullRequestFilesFinished(document.toJson());
         }
@@ -134,4 +145,14 @@ void NetworkManager::getDiff(QString diffUrl)
 {
     // manager->get(requestFactory->createRequest(tr("/pull/%1.diff").arg(pullRequestNumber)));
     manager->get(QNetworkRequest(QUrl(diffUrl)));
+}
+
+void NetworkManager::sendComment(int pullRequestNumber, QString comment)
+{
+    QByteArray data = "";
+    QJsonDocument json = QJsonDocument(QJsonObject({
+            {"body", comment}
+            })
+        );
+    manager->post(requestFactory->createRequest(tr("/issues/%1/comments").arg(pullRequestNumber)), json.toJson());
 }

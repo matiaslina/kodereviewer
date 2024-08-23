@@ -1,10 +1,11 @@
 import QtQuick 6.7
 import QtQuick.Controls 6 as QQC2
+import QtQuick.Layouts 6
 
 import org.kde.kirigami as Kirigami
 import org.kde.kodereviewer
 
-Kirigami.Page {
+Kirigami.ScrollablePage {
     id:root
     required property PullRequest pullRequest
     required property NetworkManager connection
@@ -21,15 +22,21 @@ Kirigami.Page {
     }
 
     PullRequestOverview {
-        anchors.fill: parent
         visible: pullRequest != undefined
         pullRequest: root.pullRequest
         model: commentModel
     }
+
     QQC2.Label {
         anchors.fill: parent
         visible: root.pullRequest == undefined
         text: "Select a pull request"
+    }
+
+    footer: CommentControl {
+        onCommentSent: (comment) => {
+            root.connection.sendComment(root.pullRequest.number, comment)
+        }
     }
 
 
@@ -38,6 +45,10 @@ Kirigami.Page {
 
         function onPullRequestCommentsFinished(jsonResponse) {
             commentModel.loadData(jsonResponse)
+        }
+
+        function onPullRequestPostCommentFinished(jsonResponse) {
+            commentModel.addComment(jsonResponse)
         }
 
         function onErrorOcurred(err) {

@@ -40,6 +40,8 @@ public slots:
     void getComments(int pullRequestNumber);
     void getDiff(QString diffUrl);
 
+    void sendComment(int pullRequestNumber, QString comment);
+
 signals:
     void ownerChanged(QString owner);
     void repoChanged(QString repo);
@@ -47,10 +49,9 @@ signals:
 
     void pullRequestFinished(QByteArray document);
     void pullRequestCommentsFinished(QByteArray document);
+    void pullRequestPostCommentFinished(QByteArray document);
     void pullRequestFilesFinished(QByteArray document);
     void errorOcurred(QJsonDocument* error);
-
-
 
     // TODO: Cleanup
     void diffFinished(QString* diff);

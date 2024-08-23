@@ -26,10 +26,8 @@ QQC2.Control {
     }
     spacing: 0
 
-    Kirigami.Theme.colorSet: Kirigami.Theme.View
-    Kirigami.Theme.inherit: false
-    leftPadding: rightPadding
-    rightPadding: Kirigami.Units.gridUnit
+    leftPadding: 0
+    rightPadding: 0
     topPadding: 0
     bottomPadding: 0
 
@@ -68,7 +66,11 @@ QQC2.Control {
                     Kirigami.SpellCheck.enabled: false
 
                     Keys.onReturnPressed: event => {
-                        textField.insert(cursorPosition, "\n");
+                        if (event.modifiers & Qt.ControlModifier) {
+                            sendAction.trigger()
+                        } else {
+                            textField.insert(cursorPosition, "\n");
+                        }
                     }
                     background: MouseArea {
                        acceptedButtons: Qt.NoButton

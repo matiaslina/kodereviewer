@@ -67,3 +67,11 @@ void CommentModel::loadData(QByteArray data)
  clean:
     endResetModel();
 }
+
+void CommentModel::addComment(QByteArray data)
+{
+    beginInsertRows(QModelIndex(), comments.size(), comments.size());
+    auto json = QJsonDocument::fromJson(data);
+    comments.push_back(new Comment(json));
+    endInsertRows();
+}

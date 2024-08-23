@@ -3,6 +3,7 @@ import QtQuick.Layouts 6.7
 import QtQuick.Controls 6.7 as QQC2
 
 import org.kde.kirigami as Kirigami
+import org.kde.kirigamiaddons.components as KirigamiComponents
 
 Kirigami.AbstractCard {
     id: root
@@ -16,16 +17,19 @@ Kirigami.AbstractCard {
         implicitHeight: delegateLayout.implicitHeight
         ColumnLayout {
             id: delegateLayout
+            spacing: Kirigami.Units.largeSpacing
             anchors {
+                top: parent.top
                 left: parent.left
                 right: parent.right
             }
 
             RowLayout {
-                Image {
+                KirigamiComponents.Avatar {
+                    name: root.username
                     source: root.userImage
-                    sourceSize.width: Kirigami.Units.iconSizes.smallMedium
-                    sourceSize.height: Kirigami.Units.iconSizes.smallMedium
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
                 }
                 Kirigami.Heading {
                     id: commentHeading
