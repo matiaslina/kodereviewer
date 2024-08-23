@@ -13,6 +13,10 @@ Kirigami.Page {
 
     title: `${pullRequest.title} - ${file.filename}`
 
+    DiffModel {
+        id: diffModel
+    }
+
     actions: [
         Kirigami.Action {
             icon.name: "go-home"
@@ -59,18 +63,27 @@ Kirigami.Page {
             id: sourceEditor
             text: root.git.sourceFileContents(root.file.filename)
             filename: root.file.filename
+            diffModel: diffModel
         }
 
         Editor {
             id: targetEditor
             text: root.git.targetFileContents(root.file.filename)
             filename: root.file.filename
+            diffModel: diffModel
         }
 
         Editor {
             id: diffEditor
             text: root.file.patch
             filename: "a.patch"
+        }
+    }
+
+    onFileChanged: {
+        if(file) {
+            print("diffing...")
+            git.diff(file.filename, diffModel)
         }
     }
 }

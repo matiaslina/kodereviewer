@@ -9,22 +9,29 @@ Kirigami.Page {
     required property PullRequest pullRequest
     required property NetworkManager connection
     required property GitBackend git
+    property int lastCommentsRequested: -1
 
     Kirigami.Theme.colorSet: Kirigami.Theme.View
     Kirigami.Theme.inherit: false
 
-    title: pullRequest.title
+    title: pullRequest ? pullRequest.title : "Select a pull request"
 
     CommentModel {
         id: commentModel
     }
 
-    contentItem: PullRequestOverview {
-        QQC2.SplitView.fillHeight: true
-        QQC2.SplitView.fillWidth: true
+    PullRequestOverview {
+        anchors.fill: parent
+        visible: pullRequest != undefined
         pullRequest: root.pullRequest
         model: commentModel
     }
+    QQC2.Label {
+        anchors.fill: parent
+        visible: root.pullRequest == undefined
+        text: "Select a pull request"
+    }
+
 
     Connections {
         target: root.connection
@@ -38,7 +45,10 @@ Kirigami.Page {
         }
     }
 
-    Component.onCompleted: {
-        root.connection.getPullRequestComments(root.pullRequest.number)
+    onPullRequestChanged: {
+        if (pullRequest != undefined && lastCommentsRequested != pullRequest.number) {
+            lastCommentsRequested = pullRequest.number
+            root.connection.getPullRequestComments(root.pullRequest.number)
+        }
     }
 }

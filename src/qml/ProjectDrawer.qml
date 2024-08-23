@@ -12,29 +12,37 @@ import org.kde.kodereviewer
 Kirigami.OverlayDrawer {
     id: drawer
 
-    Kirigami.Theme.colorSet: Kirigami.Theme.View
+    required property PullRequestModel model
+    required property NetworkManager connection
+    required property Project currentProject
+    signal pullRequestSelected(PullRequest pullRequest)
+    signal fileSelected(File file)
+
+    // Style settings
+    Kirigami.Theme.colorSet: Kirigami.Theme.Window
+    Kirigami.Theme.inherit: false
     property color backgroundColor: Kirigami.Theme.backgroundColor
     readonly property int narrowWidth: Kirigami.Units.gridUnit * 3
     readonly property int largeWidth: Kirigami.Units.gridUnit * 15
 
-    required property PullRequestModel model
-    required property NetworkManager connection
-    signal pullRequestSelected(PullRequest pullRequest)
-    signal fileSelected(File file)
+    required property Kirigami.ApplicationWindow window
 
-    property bool isWide: true
-    property bool changeWidth: true
-    width: isWide ? largeWidth : narrowWidth
+    modal: !enabled || Kirigami.Settings.isMobile || (window.width < Kirigami.Units.gridUnit * 50 && !collapsed)
+    closePolicy: modal ? Controls.Popup.CloseOnReleaseOutside : Controls.Popup.NoAutoClose
+    drawerOpen: !Kirigami.Settings.isMobile && enabled
+    onModalChanged: drawerOpen = !modal
+    handleClosedIcon.source: modal ? null : "sidebar-expand-left"
+    handleOpenIcon.source: modal ? null : "sidebar-collapse-left"
+
+    handleVisible: enabled
+
+    enabled: currentProject.path != ""
+    width: Kirigami.Units.gridUnit * 15
 
     leftPadding: 0
     rightPadding: 0
     topPadding: 0
     bottomPadding: 0
-
-    modal: Kirigami.Settings.isMobile
-
-    closePolicy: modal ? Controls.PopupCloseOnReleaseOutside : Controls.Popup.NoAutoClose
-
 
 
     property FileModel fileListModel: FileModel {}
@@ -64,7 +72,7 @@ Kirigami.OverlayDrawer {
         Controls.ToolBar {
             id: mainToolBar
             height: pageStack.globalToolBar.preferredHeight
-            readonly property bool isWide: drawer.isWide
+            readonly property bool isWide: !drawer.collapsed
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
@@ -84,7 +92,7 @@ Kirigami.OverlayDrawer {
             id: listView
             Kirigami.Theme.inherit: true
 
-            visible: drawer.isWide
+            visible: !drawer.collapsed
 
             anchors.top: mainToolBar.bottom
             anchors.left: parent.left
@@ -121,7 +129,7 @@ Kirigami.OverlayDrawer {
                                 const pr = drawer.model.get(index)
                                 root.connection.getPullRequestFiles(pr.number)
                                 drawer.pullRequestSelected(pr)
-                                stackView.push(fileListViewComponent)
+                                drawer.switchToFileList();
                             }
                         }
                     }
@@ -134,13 +142,20 @@ Kirigami.OverlayDrawer {
                         filterModel: fileFilterModel
 
                         onFileSelected: (file) => {
-                            print("Selected File! " + file.filename)
                             drawer.fileSelected(file)
                         }
                     }
                 }
             }
         }
+    }
+
+    function switchToPullRequestList() {
+        stackView.pop()
+    }
+
+    function switchToFileList() {
+        stackView.push(fileListViewComponent)
     }
 
     Connections {

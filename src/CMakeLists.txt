@@ -34,6 +34,8 @@ target_sources(kode-reviewer
     pullrequestmodel.cpp
     commentsmodel.cpp
     filemodel.cpp
+    projectmodel.cpp
+    diffmodel.cpp
 
     # Backends
     gitbackend.cpp
@@ -48,6 +50,8 @@ ecm_target_qml_sources(kode-reviewer
 
     qml/PullRequestOverviewPage.qml
     qml/ReviewFilePage.qml
+    qml/SettingsPage.qml
+    qml/WelcomePage.qml
 
     qml/components/DrawerHeader.qml
     qml/components/RoundedImage.qml

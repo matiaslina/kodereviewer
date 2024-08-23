@@ -12,6 +12,7 @@ QQC2.Control {
     id: root
     property string filename: "A.log"
     property string text
+    property DiffModel diffModel
 
     contentItem: QQC2.ScrollView {
         id: codeScrollView
@@ -29,6 +30,7 @@ QQC2.Control {
             color: Kirigami.Theme.textColor
             font.family: "monospace"
             Kirigami.SpellCheck.enabled: false
+            property int lineHeight: contentHeight / lineCount
 
             onWidthChanged: lineModel.resetModel()
             onHeightChanged: lineModel.resetModel()
@@ -39,20 +41,25 @@ QQC2.Control {
                 definition: Repository.definitionForFileName(root.filename)
             }
 
-
-            Rectangle {
-                //width: textEdit.width - Kirigami.Units.gridUnit
-                radius: 1
-                height: 300
-                color: "#aceebb"
-                z: -1
-                anchors {
-                    top: textEdit.top
-                    topMargin: Kirigami.Units.smallSpacing
-                    left: lineNumberColumn.right
-                    leftMargin: Kirigami.Units.smallSpacing
-                    right: textEdit.right
-                    rightMargin: Kirigami.Units.smallSpacing
+            Repeater {
+                visible: diffModel
+                model: diffModel
+                delegate: Rectangle {
+                    //width: textEdit.width - Kirigami.Units.gridUnit
+                    radius: 1
+                    height: textEdit.lineHeight * newLines
+                    y: (newStart) * textEdit.lineHeight
+                    color: "#aceebb"
+                    z: -1
+                    anchors {
+                        top: textEdit.top
+                        topMargin: Kirigami.Units.smallSpacing
+                        left: lineNumberColumn.right
+                        leftMargin: Kirigami.Units.smallSpacing
+                        right: textEdit.right
+                        rightMargin: Kirigami.Units.smallSpacing
+                    }
+                    onYChanged: { print(newStart); print(y) }
                 }
             }
 

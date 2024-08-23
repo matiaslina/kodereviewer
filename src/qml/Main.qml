@@ -20,17 +20,18 @@ Kirigami.ApplicationWindow {
         property string githubToken: ""
     }
 
-    property string username: "matiaslina"
-    property string repositoryName: "private-tests"
-    property string repositoryRoot: "/home/matias/Workspace/miniaudio-test"
+    property Project project : Project {}
+    property string username: project.owner
+    property string repositoryName: project.name
+    property string repositoryRoot: project.path
     property string token: settings.githubToken
     property PullRequest currentPullRequest
     property File currentReviewFile: File {}
     property string currentPage: ""
 
     property NetworkManager connection: NetworkManager {
-        owner: root.username
-        repo: root.repositoryName
+        owner: root.project.owner
+        repo: root.project.name
 
         onPullRequestFinished: (jsonResponse) => {
             pullRequestModel.loadData(jsonResponse)
@@ -45,6 +46,11 @@ Kirigami.ApplicationWindow {
     height: 400
 
     title: "Kode Reviewer"
+
+    Component {
+        id: settingsPage
+        SettingsPage {}
+    }
 
     PullRequestModel {
         id: pullRequestModel
@@ -62,11 +68,14 @@ Kirigami.ApplicationWindow {
 
     globalDrawer: ProjectDrawer {
         id: drawer
+        window: root
+        currentProject: root.project
         model: pullRequestModel ? pullRequestModel : undefined
         connection: root.connection
         onPullRequestSelected: pr => {
-            print(pr.title);
-            root.currentPullRequest = pr;
+            if (!root.currentPullRequest || root.currentPullRequest.number != pr.number) {
+                root.currentPullRequest = pr
+            }
         }
 
         onFileSelected: file => {
@@ -74,16 +83,18 @@ Kirigami.ApplicationWindow {
         }
     }
 
-    pageStack.initialPage: Kirigami.Page {
-        QQC2.Label {
-            anchors.centerIn: parent
-            text: "Select a pull request :)"
+    pageStack.initialPage: WelcomePage {
+        onProjectSelected: (project) => {
+            root.project = project
+            root.connection.getPullRequests();
+            root.pageStack.replace(pullRequestOverviewPage)
         }
     }
 
     Component {
         id: pullRequestOverviewPage
         PullRequestOverviewPage {
+            visible: !!root.project
             pullRequest: root.currentPullRequest
             connection: root.connection
             git: root.gitBackend
@@ -93,6 +104,7 @@ Kirigami.ApplicationWindow {
     Component {
         id: reviewFilePage
         ReviewFilePage {
+            visible: !!root.project
             pullRequest: root.currentPullRequest
             git: root.gitBackend
             file: root.currentReviewFile
@@ -109,9 +121,10 @@ Kirigami.ApplicationWindow {
     }
 
     onCurrentReviewFileChanged: {
+        print("Replacing current page")
         if (currentReviewFile && currentPage != "ReviewFilePage") {
             currentPage = "ReviewFilePage"
-            pageStack.replace(reviewFilePage)
+            pageStack.push(reviewFilePage)
         }
     }
 
@@ -124,8 +137,4 @@ Kirigami.ApplicationWindow {
         pageStack.replace(pullRequestOverviewPage)
     }
 
-    Component.onCompleted: {
-        connection.getPullRequests();
-        console.info(gitBackend.path);
-    }
 }

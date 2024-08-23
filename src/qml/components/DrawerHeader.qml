@@ -12,10 +12,24 @@ RowLayout {
     id: root
     required property Kirigami.OverlayDrawer drawer
     required property Controls.ToolBar toolbar
+
     signal searchChanged(string text)
 
     anchors.fill: parent
-    spacing: 0
+
+    Controls.ToolButton {
+        visible: !root.drawer.collapsed
+        Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
+        Controls.ToolTip.visible: hovered
+        Controls.ToolTip.text: "Pull Requests"
+        action: Kirigami.Action {
+            id: pullRequestListAction
+            icon.name: "vcs-merge-request"
+            onTriggered: {
+                root.drawer.switchToPullRequestList()
+            }
+        }
+    }
 
     Kirigami.SearchField {
         id: searchField
@@ -36,35 +50,6 @@ RowLayout {
             icon.name: "view-refresh"
             onTriggered: {
                 print("Refreshing")
-            }
-        }
-    }
-
-    Controls.ToolSeparator {
-        visible: root.toolbar.isWide
-        orientation: Qt.Vertical
-        Layout.fillHeight: true
-        Layout.margins: Kirigami.Units.smallSpacing
-    }
-
-    Controls.ToolButton {
-        visible: !Kirigami.Settings.isMobile
-        Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
-        Controls.ToolTip.visible: hovered
-        Controls.ToolTip.text: (root.toolbar.isWide
-                                ? i18n("Collapse sidebar")
-                                : i18n("Expand sidebar")
-                               ) + " (" + closeAction.shortcut + ")"
-        Layout.fillWidth: !root.toolbar.isWide
-
-        action: Kirigami.Action {
-            id: closeAction
-            icon.name: root.toolbar.isWide
-                ? "sidebar-collapse-left-symbolic"
-                : "sidebar-expand-symbolic"
-
-            onTriggered: {
-                root.drawer.close()
             }
         }
     }
