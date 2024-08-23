@@ -1,0 +1,24 @@
+include(${CMAKE_ROOT}/Modules/CheckLibraryExists.cmake)
+
+set(LIBQGIT2_LIBRARY_NAME "qgit2")
+find_path(LIBQGIT2_INCLUDE_DIR qgit2.h)
+
+find_library(LIBQGIT2_LIBRARY NAMES qgit2)
+
+if(LIBQGIT2_INCLUDE_DIR)
+  file(GLOB _LIBQGIT2_HEADERS "${LIBQGIT2_INCLUDE_DIR}/*.h")
+  set(
+    _LIBQGIT2_CONFIG_HEADERS
+    ${LIBQGIT2_INCLUDE_DIR}/qgit2.h
+    ${_LIBQGIT2_HEADERS})
+endif()
+
+include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
+find_package_handle_standard_args(LIBQGIT2
+  REQUIRED_VARS LIBQGIT2_LIBRARY LIBQGIT2_INCLUDE_DIR)
+if(LIBQGIT2_FOUND)
+  set(LIBQGIT2_LIBRARIES ${LIBQGIT2_LIBRARY})
+  set(LIBQGIT2_INCLUDE_DIRS ${LIBQGIT2_INCLUDE_DIR})
+endif()
+
+mark_as_advanced(LIBQGIT2_LIBRARIES LIBQGIT2_INCLUDE_DIRS)
