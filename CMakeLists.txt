@@ -33,6 +33,10 @@ find_package(KF6 REQUIRED COMPONENTS
 
 find_package(LibGit2 REQUIRED)
 
+# LibQGit2
+include(${CMAKE_HOME_DIRECTORY}/Modules/FindLibQGit2.cmake)
+include(FindOpenGL)
+
 ecm_find_qmlmodule(org.kde.kirigami REQUIRED)
 
 add_subdirectory(src)

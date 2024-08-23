@@ -1,11 +1,13 @@
 #ifndef GITBACKEND_H
 #define GITBACKEND_H
 
-#include "libgit/repository.h"
-#include "libgit/tree.h"
-
 #include <qqmlintegration.h>
+#include <QObject>
+#include <qgit2.h>
+#include <qgit2/qgittree.h>
+#include <qgit2/qgittreeentry.h>
 
+class DiffModel;
 
 class GitBackend : public QObject
 {
@@ -39,7 +41,7 @@ public slots:
 
     QString sourceFileContents(QString filename) const;
     QString targetFileContents(QString filename) const;
-    QString diff(QString filename) const;
+    QString diff(QString filename, DiffModel *model = nullptr) const;
 
 signals:
     void pathChanged(QString path);
@@ -53,10 +55,10 @@ private:
     QString _sourceRef;
     QString _targetRef;
 
-    GitTree targetTree() const;
-    GitTree sourceTree() const;
+    LibQGit2::Tree targetTree() const;
+    LibQGit2::Tree sourceTree() const;
 
-    Repository *repository;
+    LibQGit2::Repository *repository;
 };
 
 #endif

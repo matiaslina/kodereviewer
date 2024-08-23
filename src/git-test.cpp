@@ -1,71 +1,32 @@
-#include "libgit/gitobject.h"
-#include "libgit/repository.h"
-#include "libgit/utils.h"
+
+#include "qgit2/qgitglobal.h"
 #include <QDebug>
-#include <git2/object.h>
-#include <git2/revparse.h>
-#include <iostream>
+#include <qgit2.h>
+#include <qgit2/qgitrepository.h>
+#include <qgit2/qgittree.h>
 
-#include "libgit/commit.h"
-#include "libgit/diff.h"
-#include "libgit/tree.h"
-#include "libgit/patch.h"
-#include "libgit/blob.h"
-#include <git2.h>
+using namespace LibQGit2;
 
-void handle_error(int error)
+
+
+
+int main(void)
 {
-    if (error < 0) {
-        const git_error* e = git_error_last();
-        printf("Error %d/%d: %s\n", error, e->klass, e->message);
-        exit(error);
-    }
-}
+    LibQGit2::initLibQGit2();
+    Repository *r = new Repository;
+    QString path = "/home/matias/Workspace/miniaudio-test/";
+    r->open(path);
 
-void main_libgit()
-{
-    auto repo_path = "/home/matias/Workspace/miniaudio-test/";
-    git_repository* repo;
-    int error = git_repository_open(&repo, repo_path);
-    handle_error(error);
+    Object obj = r->lookupRevision("add-readme");
+    qDebug() << "Object " << obj.oid().format();
+    qDebug() << obj.typeString();
+    Commit commit = obj.toCommit();
+    qDebug() << "Commit " << commit.oid().format();
 
-    git_object* obj = NULL;
-    error = git_revparse_single(&obj, repo, "add-readme");
-    handle_error(error);
-    std::cout << git_object_type2string(git_object_type(obj)) << std::endl;
-}
-
-int main(int argc, char** argv)
-{
-    initLibGit();
-    if (argc == 2 && std::string(argv[1]) == "libgit") {
-        main_libgit();
-    } else {
-        QString path = QString::fromUtf8("/home/matias/Workspace/miniaudio-test/");
-        Repository r(path);
-        QString a = QString::fromUtf8("add-readme");
-        QString master = QString::fromUtf8("master");
-        auto obj = r.revparseSingle(a);
-        auto obj2 = r.revparseSingle(master);
-
-        qDebug() << obj->typeStr();
-        qDebug() << obj2->typeStr();
-
-        auto t1 = obj->commit().tree();
-        auto t2 = obj2->commit().tree();
-
-        auto diff = Diff(r, t1, t2, QString::fromUtf8("README.org"));
-
-        qDebug() << "Deltas: " << diff.numDelta();
-        for (auto d : diff.deltas()) {
-            qDebug() << "Filename: " << d->newFile().path();
-            qDebug() << "Contents!";
-            auto newEntry = t1.findEntryByName(d->newFile().path());
-            qDebug() << newEntry.contents();
-        }
-
-        qDebug() << "Diff:";
-        qDebug() << diff.toString();
-    }
+    Tree tree = commit.tree();
+    qDebug() << tree.oid().format();
+    qDebug() << tree.entryCount() << " asdf " << tree.oid().format();
+    TreeEntry entry = tree.entryByName("README.org");
+    qDebug() << entry.name();
     return 0;
 }

@@ -1,10 +1,19 @@
 #include "gitbackend.h"
-#include "libgit/gitobject.h"
-#include "libgit/diff.h"
-#include "libgit/gitobject.h"
-#include "libgit/blob.h"
-#include "libgit/patch.h"
+
 #include <QDebug>
+#include <qgit2.h>
+#include <qgit2/qgitrepository.h>
+#include <qgit2/qgitpatch.h>
+#include <qgit2/qgitdiffhunk.h>
+#include <QFile>
+#include "diffmodel.h"
+
+using namespace LibQGit2;
+
+
+/*************
+ * GITBACKEND
+ *************/
 
 GitBackend::GitBackend(QObject *parent)
     : QObject(parent)
@@ -16,7 +25,10 @@ GitBackend::GitBackend(QString &path, QObject *parent)
     , _path(path)
     , repository(nullptr)
 {
-    repository = new Repository(path);
+    if (!path.isEmpty()) {
+        repository = new Repository(nullptr);
+        initializeRepository();
+    }
 }
 
 GitBackend::~GitBackend() = default;
@@ -28,12 +40,15 @@ void GitBackend::initializeRepository()
 
 void GitBackend::initializeRepository(QString &path)
 {
+
     if (repository != nullptr)
     {
         delete repository;
         repository = nullptr;
     }
-    repository = new Repository(path);
+    repository = new Repository(nullptr);
+    repository->open(path + ".git/");
+
     emit repositoryInitialized();
 }
 
@@ -45,7 +60,9 @@ QString GitBackend::path() const
 void GitBackend::setPath(QString &path)
 {
     _path = path;
-    initializeRepository();
+    if (!_path.isEmpty()) {
+        initializeRepository();
+    }
 }
 
 
@@ -77,16 +94,20 @@ QStringList GitBackend::filesChanged()
 {
     QStringList l;
     /// TODO: repository == null
-    auto sourceObj = repository->revparseSingle(_sourceRef);
-    auto targetObj = repository->revparseSingle(_targetRef);
+    auto sourceObj = repository->lookupRevision(_sourceRef);
+    auto targetObj = repository->lookupRevision(_targetRef);
 
-    auto sourceTree = sourceObj->commit().tree();
-    auto targetTree = targetObj->commit().tree();
+    if (sourceObj.isTree() && targetObj.isTree()) {
 
-    Diff diff(*repository, sourceTree, targetTree);
+        auto sourceTree = sourceObj.toTree();
+        auto targetTree = targetObj.toTree();
 
-    for (auto delta : diff.deltas()) {
-        l << delta->newFile().path();
+        Diff diff = repository->diffTrees(sourceTree, targetTree);
+        for (size_t idx = 0; idx < diff.numDeltas(); idx++) {
+            auto delta = diff.delta(idx);
+            l << delta.newFile().path();
+        }
+
     }
 
     return l;
@@ -103,9 +124,16 @@ QString GitBackend::sourceFileContents(QString filename) const
         return "";
     }
 
-    GitTree tree = sourceTree();
-    GitTreeEntry entry = tree.findEntryByName(filename);
-    return entry.contents();
+    try {
+        Tree tree = sourceTree();
+        TreeEntry entry = tree.entryByName(filename);
+        Blob blob = entry.toObject(*repository).toBlob();
+        return QString(blob.content());
+    } catch (LibQGit2::Exception &e) {
+        qDebug() << "sourceFileContents: " << e.what();
+
+        return QStringLiteral("");
+    }
 }
 
 QString GitBackend::targetFileContents(QString filename) const
@@ -113,22 +141,35 @@ QString GitBackend::targetFileContents(QString filename) const
     if (!isRepositoryInitialized() || _targetRef.isEmpty()) {
         return QStringLiteral("");
     }
-    GitTree tree = targetTree();
-    GitTreeEntry entry = tree.findEntryByName(filename);
-    return entry.contents();
+    Tree tree;
+    try {
+        tree = targetTree();
+        TreeEntry entry = tree.entryByName(filename);
+        Blob blob = entry.toObject(*repository).toBlob();
+        return QString(blob.content());
+    } catch (LibQGit2::Exception &e) {
+        qDebug() << "targetFileContents: " << e.what();
+        return QStringLiteral("");
+    }
+
 }
 
-QString GitBackend::diff(QString filename) const
+QString GitBackend::diff(QString filename, DiffModel *model) const
 {
     if (!isRepositoryInitialized() || _targetRef.isEmpty() || _sourceRef.isEmpty()) {
         return QStringLiteral("");
     }
-    auto source = sourceTree();
-    auto target = targetTree();
-
-    Diff d = Diff(*repository, target, source, filename);
-    qDebug() << "Returning " << d.toString();
-    return d.toString();
+    Diff diff = repository->diffTrees(targetTree(), sourceTree());
+    qDebug() << diff.numDeltas();
+    Patch patch = diff.patch(0);
+    for (size_t i = 0; i < patch.numHunks(); i++) {
+        DiffHunk hunk = patch.hunk(i);
+        qDebug() << hunk.header();
+        if (model != nullptr) {
+            model->insertDiffHunk(hunk);
+        }
+    }
+    return QString();
 }
 
 
@@ -136,13 +177,17 @@ QString GitBackend::diff(QString filename) const
  * Private
  ***********/
 
-GitTree GitBackend::targetTree() const
+Tree GitBackend::targetTree() const
 {
-    return repository->revparseSingle(_targetRef)->commit().tree();
+    Object obj = repository->lookupRevision(_targetRef);
+    Commit commit = obj.toCommit();
+
+    return commit.tree();
 }
 
-GitTree GitBackend::sourceTree() const
+Tree GitBackend::sourceTree() const
 {
-    Commit commit = repository->revparseSingle(_sourceRef)->commit();
+    Object obj = repository->lookupRevision(_sourceRef);
+    Commit commit = obj.toCommit();
     return commit.tree();
 }
