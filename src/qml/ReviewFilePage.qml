@@ -5,13 +5,17 @@ import QtQuick.Layouts 6.7
 import org.kde.kirigami as Kirigami
 import org.kde.kodereviewer
 
-Kirigami.Page {
+Kirigami.ScrollablePage {
     id: root
     property PullRequest pullRequest
     property GitBackend git
     property File file
+    padding: Kirigami.Units.smallSpacing
 
     title: `${pullRequest.title} - ${file.filename}`
+
+    Kirigami.Theme.colorSet: Kirigami.Theme.View
+    Kirigami.Theme.inherit: false
 
     DiffModel {
         id: diffModel
@@ -39,45 +43,11 @@ Kirigami.Page {
         }
     }
 
-
-    header: QQC2.TabBar {
-        id: headerBar
-        currentIndex: swipeView.currentIndex
-        QQC2.TabButton {
-            text: "Source branch"
-        }
-        QQC2.TabButton {
-            text: "Target branch"
-        }
-        QQC2.TabButton {
-            text: "Diff"
-        }
-    }
-
-    QQC2.SwipeView {
-        id: swipeView
-        currentIndex: headerBar.currentIndex
-        clip: true
+    Editor {
         anchors.fill: parent
-        Editor {
-            id: sourceEditor
-            text: root.git.sourceFileContents(root.file.filename)
-            filename: root.file.filename
-            diffModel: diffModel
-        }
-
-        Editor {
-            id: targetEditor
-            text: root.git.targetFileContents(root.file.filename)
-            filename: root.file.filename
-            diffModel: diffModel
-        }
-
-        Editor {
-            id: diffEditor
-            text: root.file.patch
-            filename: "a.patch"
-        }
+        id: diffEditor
+        text: root.file.patch
+        filename: "a.patch"
     }
 
     onFileChanged: {

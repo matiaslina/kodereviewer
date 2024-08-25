@@ -8,89 +8,89 @@ import org.kde.syntaxhighlighting
 
 import org.kde.kodereviewer
 
-QQC2.Control {
+TextEdit {
+
     id: root
+
     property string filename: "A.log"
-    property string text
     property DiffModel diffModel
+    leftPadding: lineNumberColumn.width + lineNumberColumn.anchors.leftMargin + Kirigami.Units.smallSpacing * 2
 
-    contentItem: QQC2.ScrollView {
-        id: codeScrollView
+    readOnly: true
+    textFormat: TextEdit.PlainText
+    wrapMode: TextEdit.Wrap
+    color: Kirigami.Theme.textColor
+    selectionColor: Kirigami.Theme.highlightColor
+    font.family: "monospace"
+    Kirigami.SpellCheck.enabled: false
+    property int lineHeight: contentHeight / lineCount
 
-        QQC2.TextArea {
-            id: textEdit
-            topPadding: Kirigami.Units.smallSpacing
-            bottomPadding: Kirigami.Units.smallSpacing
-            leftPadding: lineNumberColumn.width + lineNumberColumn.anchors.leftMargin + Kirigami.Units.smallSpacing * 2
+    onWidthChanged: lineModel.resetModel()
+    onHeightChanged: lineModel.resetModel()
 
-            readOnly: true
-            text: root.text
-            textFormat: TextEdit.PlainText
-            wrapMode: TextEdit.Wrap
-            color: Kirigami.Theme.textColor
-            font.family: "monospace"
-            Kirigami.SpellCheck.enabled: false
-            property int lineHeight: contentHeight / lineCount
+    SyntaxHighlighter {
+        id: highlighter
+        textEdit: root
+        definition: Repository.definitionForFileName(root.filename)
+    }
 
-            onWidthChanged: lineModel.resetModel()
-            onHeightChanged: lineModel.resetModel()
-
-            SyntaxHighlighter {
-                id: highlighter
-                textEdit: textEdit
-                definition: Repository.definitionForFileName(root.filename)
+    Repeater {
+        visible: diffModel
+        model: diffModel
+        delegate: Rectangle {
+            //width: textEdit.width - Kirigami.Units.gridUnit
+            radius: 1
+            height: root.lineHeight * newLines
+            y: (newStart) * root.lineHeight
+            color: "#aceebb"
+            z: -1
+            anchors {
+                top: root.top
+                topMargin: Kirigami.Units.smallSpacing
+                left: lineNumberColumn.right
+                leftMargin: Kirigami.Units.smallSpacing
+                right: root.right
+                rightMargin: Kirigami.Units.smallSpacing
             }
+            onYChanged: { print(newStart); print(y) }
+        }
+    }
 
-            Repeater {
-                visible: diffModel
-                model: diffModel
-                delegate: Rectangle {
-                    //width: textEdit.width - Kirigami.Units.gridUnit
-                    radius: 1
-                    height: textEdit.lineHeight * newLines
-                    y: (newStart) * textEdit.lineHeight
-                    color: "#aceebb"
-                    z: -1
-                    anchors {
-                        top: textEdit.top
-                        topMargin: Kirigami.Units.smallSpacing
-                        left: lineNumberColumn.right
-                        leftMargin: Kirigami.Units.smallSpacing
-                        right: textEdit.right
-                        rightMargin: Kirigami.Units.smallSpacing
-                    }
-                    onYChanged: { print(newStart); print(y) }
-                }
+    Kirigami.Separator {
+        anchors {
+            top: root.top
+            bottom: root.bottom
+            left: lineNumberColumn.right
+            leftMargin: Kirigami.Units.smallSpacing
+        }
+    }
+
+    ColumnLayout {
+        id: lineNumberColumn
+        anchors {
+            top: root.top
+            topMargin: root.topPadding
+            left: root.left
+            leftMargin: Kirigami.Units.smallSpacing
+        }
+        spacing: 0
+        Repeater {
+            id: repeater
+            model: LineModel {
+                id: lineModel
+                document: root.textDocument
             }
+            delegate: QQC2.Label {
+                id: label
+                required property int index
+                required property int docLineHeight
+                Layout.fillWidth: true
+                Layout.preferredHeight: docLineHeight
+                horizontalAlignment: Text.AlignRight
+                text: index + 1
+                color: Kirigami.Theme.disabledTextColor
 
-            ColumnLayout {
-                id: lineNumberColumn
-                anchors {
-                    top: textEdit.top
-                    topMargin: textEdit.topPadding
-                    left: textEdit.left
-                    leftMargin: Kirigami.Units.smallSpacing
-                }
-                spacing: 0
-                Repeater {
-                    id: repeater
-                    model: LineModel {
-                        id: lineModel
-                        document: textEdit.textDocument
-                    }
-                    delegate: QQC2.Label {
-                        id: label
-                        required property int index
-                        required property int docLineHeight
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: docLineHeight
-                        horizontalAlignment: Text.AlignRight
-                        text: index + 1
-                        color: Kirigami.Theme.disabledTextColor
-
-                        font.family: "monospace"
-                    }
-                }
+                font.family: "monospace"
             }
         }
     }
