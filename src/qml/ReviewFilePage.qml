@@ -20,8 +20,16 @@ Kirigami.ScrollablePage {
     actions: [
         Kirigami.Action {
             icon.name: "go-home"
+            text: "Pull request overview"
             onTriggered: {
                 applicationWindow().switchToPullRequestOverview()
+            }
+        },
+        Kirigami.Action {
+            icon.name: "edit-comment"
+            text: "Add comment"
+            onTriggered: {
+                print("Adding comment")
             }
         }
     ]

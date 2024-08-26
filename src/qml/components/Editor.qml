@@ -79,6 +79,7 @@ TextEdit {
     Repeater {
         id: threadsRepeater
         model: root.pullRequest.reviewThread(root.file)
+
         QQC2.Button {
             icon.name: "edit-comment"
             y: root.lineHeight * modelData.line
@@ -87,7 +88,7 @@ TextEdit {
             onClicked: {
                 const component = Qt.createComponent("CommentWindow.qml")
                 if(component.status === Component.Ready) {
-                    component.createObject(parent, {
+                    component.createObject(null, {
                         title: `${modelData.path} @ ${modelData.line}`,
                         model: modelData.comments
                     })
@@ -96,8 +97,40 @@ TextEdit {
         }
     }
 
+    Repeater {
+        id: hightlightRepeater
+        model: root.pullRequest.reviewThread(root.file)
+        delegate: Rectangle {
+            radius: 1
+            height: root.lineHeight * (modelData.endLine - modelData.startLine + 1)
+            y: modelData.startLine * root.lineHeight
+            color: "peachpuff"
+            z: -1
+            anchors {
+                left: lineNumberColumn.right
+                leftMargin: Kirigami.Units.smallSpacing
+                right: root.right
+                rightMargin: Kirigami.Units.smallSpacing
+            }
+        }
+    }
+
     onFileChanged: {
         repeater.model.resetModel()
         threadsRepeater.model = root.pullRequest.reviewThread(root.file)
+        hightlightRepeater.model = root.pullRequest.reviewThread(root.file)
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.RightButton
+        onClicked: mouse => {
+            if (mouse.button === Qt.RightButton)
+                contextMenu.popup()
+        }
+        QQC2.Menu {
+            id: contextMenu
+            QQC2.MenuItem { text: "Add comment" }
+        }
     }
 }

@@ -86,8 +86,25 @@ private:
 class ReviewThread : public QObject {
     Q_OBJECT
 
+    /**
+     * Path (file) for the review thread
+     */
     Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged)
+
+    /**
+     * Line of the thread
+     */
     Q_PROPERTY(int line READ line WRITE setLine NOTIFY lineChanged)
+
+    /**
+     * From where the review starts in the source file
+     */
+    Q_PROPERTY(unsigned int startLine READ startLine NOTIFY startLineChanged)
+
+    /**
+     * Where the thread ends in the source file
+     */
+    Q_PROPERTY(unsigned int endLine READ endLine NOTIFY endLineChanged)
 
     /**
      * Holds the comments for this review
@@ -98,6 +115,7 @@ class ReviewThread : public QObject {
 public:
     explicit ReviewThread(QObject *parent = nullptr);
     ReviewThread(QString &path, int line, QObject *parent = nullptr);
+    ReviewThread(QString &path, int line, unsigned int startLine, unsigned int endLine, QObject *parent = nullptr);
     ~ReviewThread();
 
     void addReview(Review *review);
@@ -106,16 +124,37 @@ public:
     bool hasId(unsigned int id);
 
 public slots:
-    void setPath(QString path);
+    /**
+     * Returns the path of the file.
+     */
     QString path() const;
-    void setLine(int line);
+
+    /**
+     * Sets the file path for this review
+     */
+    void setPath(QString path);
+
+    /**
+     * Line of the thread in the source file
+     */
     int line() const;
+
+    /**
+     * Sets the line on which the threads is
+     */
+    void setLine(int line);
+
+    unsigned int startLine() const;
+    unsigned int endLine() const;
 
     QList<Review *> comments() const;
 
 signals:
     void pathChanged(QString path);
     void lineChanged(QString line);
+
+    void startLineChanged(unsigned int startLine);
+    void endLineChanged(unsigned int endLine);
 
     /**
      * Notifies if ::comments has changed
@@ -125,6 +164,10 @@ signals:
 private:
     QString _path;
     int _line;
+
+    unsigned int _startLine;
+    unsigned int _endLine;
+
     std::vector<Review *> childs;
 };
 

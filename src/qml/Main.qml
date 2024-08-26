@@ -129,11 +129,13 @@ Kirigami.ApplicationWindow {
     }
 
     function switchToReviewFile(file) {
+        currentPage = "ReviewFilePage"
         currentReviewFile = file
         pageStack.replace(reviewFilePage)
     }
 
     function switchToPullRequestOverview() {
+        currentPage = "PullRequestOverview"
         pageStack.replace(pullRequestOverviewPage)
     }
 }

@@ -120,10 +120,16 @@ void PullRequest::loadThreads(QByteArray threadsDocument)
         auto document = QJsonDocument(ref.toObject());
         ReviewThread *rt = nullptr;
         QString path = document["path"].toString();
-        int line = document["position"].toInt();
+        int line = document["line"].toInt();
+        int startLine = document["start_line"].toInt();
+
+        if (startLine == 0) {
+            startLine = line;
+        }
+
 
         if (!_threads.contains(path)) {
-            rt = new ReviewThread(path, line);
+            rt = new ReviewThread(path, line, startLine, line);
         } else {
             rt = _threads[path];
         }
@@ -248,6 +254,16 @@ ReviewThread::ReviewThread(QString &path, int line, QObject *parent)
     : QObject(parent)
     , _path(path)
     , _line(line)
+    , _startLine(line)
+    , _endLine(line)
+{}
+
+ReviewThread::ReviewThread(QString &path, int line, unsigned int startLine, unsigned int endLine, QObject *parent)
+    : QObject(parent)
+    , _path(path)
+    , _line(line)
+    , _startLine(startLine)
+    , _endLine(endLine)
 {}
 
 ReviewThread::~ReviewThread() = default;
@@ -291,6 +307,18 @@ int ReviewThread::line() const
 {
     return _line;
 }
+
+
+unsigned int ReviewThread::startLine() const
+{
+    return _startLine;
+}
+
+unsigned int ReviewThread::endLine() const
+{
+    return _endLine;
+}
+
 
 QList<Review *> ReviewThread::comments() const
 {
