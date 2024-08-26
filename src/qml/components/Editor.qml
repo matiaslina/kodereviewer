@@ -12,8 +12,11 @@ TextEdit {
 
     id: root
 
+    required property PullRequest pullRequest
+    required property string file
+
     property string filename: "A.log"
-    property DiffModel diffModel
+
     leftPadding: lineNumberColumn.width + lineNumberColumn.anchors.leftMargin + Kirigami.Units.smallSpacing * 2
 
     readOnly: true
@@ -32,28 +35,6 @@ TextEdit {
         id: highlighter
         textEdit: root
         definition: Repository.definitionForFileName(root.filename)
-    }
-
-    Repeater {
-        visible: diffModel
-        model: diffModel
-        delegate: Rectangle {
-            //width: textEdit.width - Kirigami.Units.gridUnit
-            radius: 1
-            height: root.lineHeight * newLines
-            y: (newStart) * root.lineHeight
-            color: "#aceebb"
-            z: -1
-            anchors {
-                top: root.top
-                topMargin: Kirigami.Units.smallSpacing
-                left: lineNumberColumn.right
-                leftMargin: Kirigami.Units.smallSpacing
-                right: root.right
-                rightMargin: Kirigami.Units.smallSpacing
-            }
-            onYChanged: { print(newStart); print(y) }
-        }
     }
 
     Kirigami.Separator {
@@ -93,5 +74,30 @@ TextEdit {
                 font.family: "monospace"
             }
         }
+    }
+
+    Repeater {
+        id: threadsRepeater
+        model: root.pullRequest.reviewThread(root.file)
+        QQC2.Button {
+            icon.name: "edit-comment"
+            y: root.lineHeight * modelData.line
+            anchors.right: root.right
+
+            onClicked: {
+                const component = Qt.createComponent("CommentWindow.qml")
+                if(component.status === Component.Ready) {
+                    component.createObject(parent, {
+                        title: `${modelData.path} @ ${modelData.line}`,
+                        model: modelData.comments
+                    })
+                }
+            }
+        }
+    }
+
+    onFileChanged: {
+        repeater.model.resetModel()
+        threadsRepeater.model = root.pullRequest.reviewThread(root.file)
     }
 }

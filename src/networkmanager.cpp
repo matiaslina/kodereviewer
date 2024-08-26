@@ -9,6 +9,8 @@
 
 NetworkManager::NetworkManager(QObject* parent)
     : QObject(parent)
+    , _pending(false)
+    , _lastPendingRequest("")
 {
     QSettings settings;
     manager = new QNetworkAccessManager;
@@ -76,6 +78,28 @@ void NetworkManager::setUrl(QString owner, QString repo)
     requestFactory->setBaseUrl(base);
 }
 
+bool NetworkManager::pending() const
+{
+    return _pending;
+}
+
+void NetworkManager::setPending(bool pending)
+{
+    _pending = pending;
+    emit pendingChanged(pending);
+}
+
+QString NetworkManager::lastPendingRequest() const
+{
+    return _lastPendingRequest;
+}
+
+void NetworkManager::setLastPendingRequest(QString lastPendingRequest)
+{
+    _lastPendingRequest = lastPendingRequest;
+    emit lastPendingRequestChanged(_lastPendingRequest);
+}
+
 bool matchUrl(QString pattern, QString url)
 {
     return QRegularExpression(pattern).match(url).hasMatch();
@@ -104,11 +128,12 @@ void NetworkManager::replyFinished(QNetworkReply* reply)
             } else if (reply->operation() == QNetworkAccessManager::Operation::PostOperation){
                 emit pullRequestPostCommentFinished(document.toJson());
             }
-        } else if (url.endsWith(tr(".diff"))) {
-            emit diffFinished(new QString(QString::fromUtf8(contents)));
         } else if (matchUrl("/pulls/\\d+/files$", url)) {
             auto document = QJsonDocument::fromJson(contents);
             emit pullRequestFilesFinished(document.toJson());
+        } else if (matchUrl("/pulls/\\d+/comments$", url)) {
+            auto document = QJsonDocument::fromJson(contents);
+            emit pullRequestThreadsFinished(contents);
         }
         break;
     case QNetworkReply::ProtocolUnknownError:
@@ -118,33 +143,39 @@ void NetworkManager::replyFinished(QNetworkReply* reply)
         qDebug() << document;
         emit errorOcurred(&document);
     }
+    setPending(false);
 }
 
 void NetworkManager::getPullRequests()
 {
-    manager->get(requestFactory->createRequest(tr("/pulls")));
+    QString requestUrl = QString("/pulls");
+    setPending(true);
+    setLastPendingRequest(requestUrl);
+    manager->get(requestFactory->createRequest(requestUrl));
 }
 
 void NetworkManager::getPullRequestComments(int pullRequestNumber)
 {
-    manager->get(requestFactory->createRequest(tr("/issues/%1/comments").arg(pullRequestNumber)));
+    QString requestUrl = QString("/issues/%1/comments").arg(pullRequestNumber);
+    setPending(true);
+    setLastPendingRequest(requestUrl);
+    manager->get(requestFactory->createRequest(requestUrl));
 }
 
 void NetworkManager::getPullRequestFiles(int pullRequestNumber)
 {
-    manager->get(requestFactory->createRequest(tr("/pulls/%1/files")
-                                               .arg(pullRequestNumber)));
+    QString requestUrl = QString("/pulls/%1/files").arg(pullRequestNumber);
+    setPending(true);
+    setLastPendingRequest(requestUrl);
+    manager->get(requestFactory->createRequest(requestUrl));
 }
 
-void NetworkManager::getComments(int pullRequestNumber)
+void NetworkManager::getPullRequestThreads(int pullRequestNumber)
 {
-    manager->get(requestFactory->createRequest(tr("/pulls/%1/comments").arg(pullRequestNumber)));
-}
-
-void NetworkManager::getDiff(QString diffUrl)
-{
-    // manager->get(requestFactory->createRequest(tr("/pull/%1.diff").arg(pullRequestNumber)));
-    manager->get(QNetworkRequest(QUrl(diffUrl)));
+    QString requestUrl = QString("/pulls/%1/comments").arg(pullRequestNumber);
+    setPending(true);
+    setLastPendingRequest(requestUrl);
+    manager->get(requestFactory->createRequest(requestUrl));
 }
 
 void NetworkManager::sendComment(int pullRequestNumber, QString comment)
@@ -154,5 +185,8 @@ void NetworkManager::sendComment(int pullRequestNumber, QString comment)
             {"body", comment}
             })
         );
-    manager->post(requestFactory->createRequest(tr("/issues/%1/comments").arg(pullRequestNumber)), json.toJson());
+    QString requestUrl = QString("/issues/%1/comments").arg(pullRequestNumber);
+    setPending(true);
+    setLastPendingRequest(requestUrl);
+    manager->post(requestFactory->createRequest(), json.toJson());
 }

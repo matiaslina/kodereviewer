@@ -32,7 +32,6 @@ ColumnLayout {
             }
             onClicked: {
                 view.currentIndex = index
-                print(status)
                 const file = root.model.get(index)
                 root.fileSelected(file)
             }

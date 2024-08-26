@@ -17,10 +17,6 @@ Kirigami.ScrollablePage {
     Kirigami.Theme.colorSet: Kirigami.Theme.View
     Kirigami.Theme.inherit: false
 
-    DiffModel {
-        id: diffModel
-    }
-
     actions: [
         Kirigami.Action {
             icon.name: "go-home"
@@ -44,16 +40,15 @@ Kirigami.ScrollablePage {
     }
 
     Editor {
-        anchors.fill: parent
         id: diffEditor
+
+        anchors.fill: parent
         text: root.file.patch
         filename: "a.patch"
+        file: root.file.filename
+        pullRequest: root.pullRequest
     }
 
     onFileChanged: {
-        if(file) {
-            print("diffing...")
-            git.diff(file.filename, diffModel)
-        }
     }
 }

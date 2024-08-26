@@ -19,6 +19,116 @@ public:
     QUrl avatarUrl;
 };
 
+
+/*! A review comment from /pulls/{prNumber}/comments */
+class Review : public QObject  {
+    Q_OBJECT
+
+    Q_PROPERTY(int id READ id NOTIFY idChanged)
+    Q_PROPERTY(QString nodeId READ nodeId NOTIFY nodeIdChanged)
+    Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
+    Q_PROPERTY(QDateTime createdAt READ createdAt NOTIFY createdAtChanged)
+    Q_PROPERTY(QDateTime updatedAt READ updatedAt NOTIFY updatedAtChanged)
+
+    Q_PROPERTY(QString username READ username NOTIFY usernameChanged)
+    Q_PROPERTY(QUrl avatarUrl READ avatarUrl NOTIFY avatarUrlChanged)
+
+    QML_ELEMENT
+
+public:
+    Review(QObject *parent = nullptr);
+    Review(QJsonDocument &document, QObject *parent = nullptr);
+    ~Review();
+
+    QJsonObject toObject();
+
+public slots:
+    int id() const;
+    QString nodeId() const;
+    QString description() const;
+    QDateTime createdAt() const;
+    QDateTime updatedAt() const;
+
+    QString username() const;
+    QUrl avatarUrl() const;
+
+signals:
+    void idChanged(int id);
+    void nodeIdChanged(QString nodeId);
+    void descriptionChanged(QString description);
+    void createdAtChanged(QDateTime createdAt);
+    void updatedAtChanged(QDateTime updatedAt);
+
+    void usernameChanged(QString username);
+    void avatarUrlChanged(QUrl avatarUrl);
+
+private:
+    unsigned int _id;
+    unsigned int _pullRequestReviewId;
+    QString _nodeId;
+
+    QString _diffHunk;
+    QString _path;
+    unsigned int _line;
+
+    std::unique_ptr<User> _user;
+
+    /// body
+    QString _description;
+    QDateTime _createdAt;
+    QDateTime _updatedAt;
+
+    /// Id of the Review comment that this affects
+    unsigned int _inReplyTo = 0;
+};
+
+/*! A thread for one review */
+class ReviewThread : public QObject {
+    Q_OBJECT
+
+    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged)
+    Q_PROPERTY(int line READ line WRITE setLine NOTIFY lineChanged)
+
+    /**
+     * Holds the comments for this review
+     */
+    Q_PROPERTY(QList<Review*> comments READ comments NOTIFY commentsChanged)
+
+    QML_ELEMENT
+public:
+    explicit ReviewThread(QObject *parent = nullptr);
+    ReviewThread(QString &path, int line, QObject *parent = nullptr);
+    ~ReviewThread();
+
+    void addReview(Review *review);
+
+    std::vector<Review *> reviews();
+    bool hasId(unsigned int id);
+
+public slots:
+    void setPath(QString path);
+    QString path() const;
+    void setLine(int line);
+    int line() const;
+
+    QList<Review *> comments() const;
+
+signals:
+    void pathChanged(QString path);
+    void lineChanged(QString line);
+
+    /**
+     * Notifies if ::comments has changed
+     */
+    void commentsChanged(QList<Review*> comment);
+
+private:
+    QString _path;
+    int _line;
+    std::vector<Review *> childs;
+};
+
+
 /*! Pull request data from
   https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
   (/pull-request)
@@ -41,6 +151,8 @@ class PullRequest : public QObject {
 
     Q_PROPERTY(QString sourceRef READ sourceRef NOTIFY sourceRefChanged)
     Q_PROPERTY(QString targetRef READ targetRef NOTIFY targetRefChanged)
+
+    Q_PROPERTY(QHash<QString, ReviewThread*> fileThreads READ fileThreads NOTIFY fileThreadsChanged)
 
     QML_ELEMENT
 
@@ -81,12 +193,32 @@ public:
     QString sourceRef() const;
     QString targetRef() const;
 
+    /**
+     * A map of filename -> threads for this pull request
+     */
+    QHash<QString, ReviewThread*> fileThreads() const;
+
+public slots:
+    /**
+     * Load the threads from a response
+     * @param threadsDocument The json of the response
+     */
+    void loadThreads(QByteArray threadsDocument);
+
+    /**
+     * Return a ReviewThread for path
+     * @returns reviewThread
+     */
+    ReviewThread *reviewThread(QString path);
+
 signals:
     void titleChanged(QString title);
     void numberChanged(int number);
     void descriptionChanged(QString description);
     void sourceRefChanged(QString ref);
     void targetRefChanged(QString ref);
+
+    void fileThreadsChanged(QHash<QString, QList<ReviewThread*>> threads);
 
 private:
     unsigned int _id;
@@ -111,6 +243,7 @@ private:
     QString _sourceRef;
     QString _targetRef;
 
+    QHash<QString, ReviewThread*> _threads;
 };
 
 
@@ -161,49 +294,6 @@ private:
 
     std::unique_ptr<User> _user;
 };
-
-/*! A review comment from /pulls/{prNumber}/comments */
-class Review {
-public:
-    Review(QJsonDocument &document);
-    ~Review();
-
-    QJsonObject toObject();
-
-    unsigned int id;
-    unsigned int pullRequestReviewId;
-    QString nodeId;
-
-    QString diffHunk;
-    QString path;
-    unsigned int line;
-
-    std::unique_ptr<User> user;
-
-    /// body
-    QString description;
-    QDateTime createdAt;
-    QDateTime updatedAt;
-
-    /// Id of the Review comment that this affects
-    unsigned int inReplyTo = 0;
-};
-
-/*! A thread for one review */
-class ReviewThread {
-public:
-    ReviewThread();
-    ~ReviewThread();
-
-    void addReview(Review *review);
-
-    std::vector<Review *> reviews();
-    bool hasId(unsigned int id);
-    int line();
-private:
-    std::vector<Review *> childs;
-};
-
 
 class File : public QObject {
     Q_OBJECT

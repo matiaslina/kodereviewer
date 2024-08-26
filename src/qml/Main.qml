@@ -115,16 +115,16 @@ Kirigami.ApplicationWindow {
         if (currentPullRequest) {
             gitBackend.sourceRef = currentPullRequest.sourceRef
             gitBackend.targetRef = currentPullRequest.targetRef
+            root.connection.getPullRequestThreads(currentPullRequest.number)
         }
         currentPage = "PullRequestOverview"
         pageStack.replace(pullRequestOverviewPage);
     }
 
     onCurrentReviewFileChanged: {
-        print("Replacing current page")
         if (currentReviewFile && currentPage != "ReviewFilePage") {
             currentPage = "ReviewFilePage"
-            pageStack.push(reviewFilePage)
+            pageStack.replace(reviewFilePage)
         }
     }
 
@@ -136,5 +136,4 @@ Kirigami.ApplicationWindow {
     function switchToPullRequestOverview() {
         pageStack.replace(pullRequestOverviewPage)
     }
-
 }

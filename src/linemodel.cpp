@@ -18,7 +18,6 @@ void LineModel::setDocument(QQuickTextDocument *document)
     if (document == m_document) {
         return;
     }
-
     m_document = document;
     Q_EMIT documentChanged();
 

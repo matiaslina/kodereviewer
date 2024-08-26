@@ -51,15 +51,20 @@ Kirigami.ScrollablePage {
             commentModel.addComment(jsonResponse)
         }
 
+        function onPullRequestThreadsFinished(jsonResponse) {
+            root.pullRequest.loadThreads(jsonResponse)
+        }
+
         function onErrorOcurred(err) {
             console.log(err);
         }
     }
 
     onPullRequestChanged: {
-        if (pullRequest != undefined && lastCommentsRequested != pullRequest.number) {
+        if (pullRequest != undefined && lastCommentsRequested != pullRequest.number && !root.connection.pending) {
             lastCommentsRequested = pullRequest.number
             root.connection.getPullRequestComments(root.pullRequest.number)
+            root.connection.getPullRequestThreads(root.pullRequest.number)
         }
     }
 }

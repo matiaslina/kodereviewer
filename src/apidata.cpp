@@ -4,6 +4,8 @@
 #include <qnamespace.h>
 #include <qstringliteral.h>
 #include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
 #include <QDateTime>
 
 
@@ -98,6 +100,50 @@ QDateTime PullRequest::updatedAt() const { return _updatedAt; }
 QString PullRequest::sourceRef() const { return _sourceRef; }
 QString PullRequest::targetRef() const { return _targetRef; }
 
+QHash<QString, ReviewThread*> PullRequest::fileThreads() const
+{
+    return _threads;
+}
+
+// slots
+
+void PullRequest::loadThreads(QByteArray threadsDocument)
+{
+    QJsonDocument json = QJsonDocument::fromJson(threadsDocument);
+
+    if (!json.isArray()) {
+        qDebug() << "loadThreads: json is not an array";
+        return;
+    }
+
+    for (auto ref : json.array()) {
+        auto document = QJsonDocument(ref.toObject());
+        ReviewThread *rt = nullptr;
+        QString path = document["path"].toString();
+        int line = document["position"].toInt();
+
+        if (!_threads.contains(path)) {
+            rt = new ReviewThread(path, line);
+        } else {
+            rt = _threads[path];
+        }
+        Review *r = new Review(document);
+        rt->addReview(r);
+
+        qDebug() << QString("Added review to %1 @ %2").arg(path).arg(line);
+        _threads[path] = rt;
+    }
+}
+
+ReviewThread *PullRequest::reviewThread(QString path)
+{
+    if (_threads.contains(path)) {
+        return _threads[path];
+    }
+    qDebug() << "Unknown path " << path;
+    return nullptr;
+}
+
 /***************************
  *       Comments
  **************************/
@@ -136,42 +182,56 @@ QUrl Comment::userImage() const {
 /***************************
  *       Review
  **************************/
-Review::Review(QJsonDocument &doc)
+
+Review::Review(QObject *parent)
+    : QObject(parent)
+{}
+
+Review::Review(QJsonDocument &doc, QObject *parent)
+    : QObject(parent)
 {
-    this->id = doc[QStringLiteral("id")].toInt();
-    this->pullRequestReviewId = doc[QStringLiteral("pull_request_review_id")].toInt();
-    this->nodeId = doc[QStringLiteral("node_id")].toString();
-    this->diffHunk = doc[QStringLiteral("diff_hunk")].toString();
-    this->path = doc[QStringLiteral("path")].toString();
-    this->line = doc[QStringLiteral("line")].toInt();
-    this->description = doc[QStringLiteral("body")].toString();
-    this->createdAt = QDateTime::fromString(doc[QStringLiteral("created_at")].toString(), Qt::ISODate);
-    this->updatedAt = QDateTime::fromString(doc[QStringLiteral("updated_at")].toString(), Qt::ISODate);
+    this->_id = doc[QStringLiteral("id")].toInt();
+    this->_pullRequestReviewId = doc[QStringLiteral("pull_request_review_id")].toInt();
+    this->_nodeId = doc[QStringLiteral("node_id")].toString();
+    this->_diffHunk = doc[QStringLiteral("diff_hunk")].toString();
+    this->_path = doc[QStringLiteral("path")].toString();
+    this->_line = doc[QStringLiteral("line")].toInt();
+    this->_description = doc[QStringLiteral("body")].toString();
+    this->_createdAt = QDateTime::fromString(doc[QStringLiteral("created_at")].toString(), Qt::ISODate);
+    this->_updatedAt = QDateTime::fromString(doc[QStringLiteral("updated_at")].toString(), Qt::ISODate);
 
     QJsonDocument userDocument(doc[QStringLiteral("user")].toObject());
-    this->user = std::make_unique<User>(userDocument);
+    this->_user = std::make_unique<User>(userDocument);
 
     auto in_reply_to = doc[QStringLiteral("in_reply_to")];
     if (in_reply_to != QJsonValue::Undefined) {
-        this->inReplyTo = in_reply_to.toInt();
+        this->_inReplyTo = in_reply_to.toInt();
     }
 }
 
 Review::~Review() = default;
 
+int Review::id() const { return _id; }
+QString Review::nodeId() const { return _nodeId; }
+QString Review::description() const { return _description; }
+QDateTime Review::createdAt() const { return _createdAt; }
+QDateTime Review::updatedAt() const { return _updatedAt; }
+
+QString Review::username() const { return _user->username; }
+QUrl Review::avatarUrl() const { return _user->avatarUrl; }
 
 QJsonObject Review::toObject()
 {
     return {
-        { QStringLiteral("id"), QJsonValue((int) id) },
-        { QStringLiteral("diffHunk"), QJsonValue(diffHunk) },
-        { QStringLiteral("path"), path },
-        { QStringLiteral("user"), user->toObject() },
-        { QStringLiteral("body"), QJsonValue(description) },
-        { QStringLiteral("createdAt"), QJsonValue(createdAt.toString()) },
-        { QStringLiteral("in_reply_to_id"), QJsonValue((int) inReplyTo) },
-        { QStringLiteral("originalStartLine"), QJsonValue((int) line) },
-        { QStringLiteral("startLine"), QJsonValue((int) line) }
+        { QStringLiteral("id"), QJsonValue((int) _id) },
+        { QStringLiteral("diffHunk"), QJsonValue(_diffHunk) },
+        { QStringLiteral("path"), _path },
+        { QStringLiteral("user"), _user->toObject() },
+        { QStringLiteral("body"), QJsonValue(_description) },
+        { QStringLiteral("createdAt"), QJsonValue(_createdAt.toString()) },
+        { QStringLiteral("in_reply_to_id"), QJsonValue((int) _inReplyTo) },
+        { QStringLiteral("originalStartLine"), QJsonValue((int) _line) },
+        { QStringLiteral("startLine"), QJsonValue((int) _line) }
     };
 }
 
@@ -179,9 +239,16 @@ QJsonObject Review::toObject()
 /***************************
  *       ReviewThread
  **************************/
-ReviewThread::ReviewThread()
+ReviewThread::ReviewThread(QObject *parent)
+    : QObject(parent)
 {
 }
+
+ReviewThread::ReviewThread(QString &path, int line, QObject *parent)
+    : QObject(parent)
+    , _path(path)
+    , _line(line)
+{}
 
 ReviewThread::~ReviewThread() = default;
 
@@ -198,20 +265,47 @@ std::vector<Review*> ReviewThread::reviews()
 bool ReviewThread::hasId(unsigned int id)
 {
     for (Review *review : reviews()) {
-        if (review->id == id) {
+        if (review->id() == (int) id) {
             return true;
         }
     }
     return false;
 }
 
-int ReviewThread::line()
+void ReviewThread::setPath(QString path)
 {
-    if (childs.size() > 0) {
-        return childs[0]->line;
-    }
-    return -1;
+    _path = path;
 }
+
+QString ReviewThread::path() const
+{
+    return _path;
+}
+
+void ReviewThread::setLine(int line)
+{
+    _line = line;
+}
+
+int ReviewThread::line() const
+{
+    return _line;
+}
+
+QList<Review *> ReviewThread::comments() const
+{
+    QList<Review *> retval;
+
+    for (auto r : childs) {
+        retval << r;
+    }
+
+    return retval;
+}
+
+/***************************
+ *       File
+ **************************/
 
 File::File(QObject *parent)
     : QObject(parent)
