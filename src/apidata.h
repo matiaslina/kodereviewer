@@ -4,6 +4,10 @@
 #include <QJsonDocument>
 #include <qqmlintegration.h>
 #include <qtmetamacros.h>
+#include <QPointer>
+
+#include "reviewthreadmodel.h"
+
 
 /*!
   User structure from github api.
@@ -171,7 +175,6 @@ private:
     std::vector<Review *> childs;
 };
 
-
 /*! Pull request data from
   https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
   (/pull-request)
@@ -253,6 +256,8 @@ public slots:
      * @returns reviewThread
      */
     ReviewThread *reviewThread(QString path);
+
+    ReviewThreadModel *reviewThreadModel(QString path);
 
 signals:
     void titleChanged(QString title);

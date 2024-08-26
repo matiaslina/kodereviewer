@@ -157,6 +157,17 @@ public slots:
      */
     void sendComment(int pullRequestNumber, QString comment);
 
+    /**
+     * Send a comment for a review
+     *
+     * This does a POST request to `<base-url>/pulls/{pull_number}/comments/{comment_id}/replies`
+     *
+     * When finished, the signal
+     * ::sendThreadCommentFinished(QByteArray doc) is
+     * triggered with the body of the response in `doc`
+     */
+    void sendThreadComment(int pullRequestNumber, int commentId, QString comment);
+
 signals:
     /**
      * This signal is emmited whenever the ::owner of the network manager changes.
@@ -207,6 +218,11 @@ signals:
      * Signal emmited when getPullRequestThreads() finishes.
      */
     void pullRequestThreadsFinished(QByteArray document);
+
+    /**
+     * Signal emmited when sendThreadComment() finished
+     */
+    void sendThreadCommentFinished(QByteArray doc);
 
     /**
      * Signal emmited when there's an error different from QNetworkReply::NoError

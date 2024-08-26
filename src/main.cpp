@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<LineModel>("org.kde.kodereviewer", 1, 0, "LineModel");
     qmlRegisterType<ProjectModel>("org.kde.kodereviewer", 1, 0, "ProjectModel");
     qmlRegisterType<DiffModel>("org.kde.kodereviewer", 1, 0, "DiffModel");
+    qmlRegisterType<ReviewThreadModel>("org.kde.kodereviewer", 1, 0, "ReviewThreadModel");
 
 
     qmlRegisterType<PullRequest>("org.kde.kodereviewer", 1, 0, "PullRequest");

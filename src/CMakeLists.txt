@@ -36,6 +36,7 @@ target_sources(kode-reviewer
     filemodel.cpp
     projectmodel.cpp
     diffmodel.cpp
+    reviewthreadmodel.cpp
 
     # Backends
     gitbackend.cpp

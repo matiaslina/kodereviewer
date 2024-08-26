@@ -14,6 +14,9 @@ TextEdit {
 
     required property PullRequest pullRequest
     required property string file
+    required property NetworkManager connection
+
+    signal commentClicked(string path, int line)
 
     property string filename: "A.log"
 
@@ -86,13 +89,7 @@ TextEdit {
             anchors.right: root.right
 
             onClicked: {
-                const component = Qt.createComponent("CommentWindow.qml")
-                if(component.status === Component.Ready) {
-                    component.createObject(null, {
-                        title: `${modelData.path} @ ${modelData.line}`,
-                        model: modelData.comments
-                    })
-                }
+                root.commentClicked(modelData.path, modelData.line)
             }
         }
     }

@@ -7,6 +7,7 @@ import org.kde.kodereviewer
 
 Kirigami.ScrollablePage {
     id: root
+    required property NetworkManager connection
     property PullRequest pullRequest
     property GitBackend git
     property File file
@@ -49,14 +50,30 @@ Kirigami.ScrollablePage {
 
     Editor {
         id: diffEditor
+        connection: root.connection
 
         anchors.fill: parent
         text: root.file.patch
         filename: "a.patch"
         file: root.file.filename
         pullRequest: root.pullRequest
-    }
 
-    onFileChanged: {
+        onCommentClicked: (path, line) => {
+            /* const component = Qt.createComponent("CommentWindow.qml") */
+            /* if (component.status === Component.Error) { */
+            /*     console.error(component.errorString()) */
+            /*     return */
+            /* } */
+            /* const reviewThreadModel = root.pullRequest.reviewThreadModel(path); */
+            /* print(reviewThreadModel) */
+            /* const instance = component.createObject(root, { */
+            /*     commentId: "", */
+            /*     pullRequestNumber: root.pullRequest.number, */
+            /*     model: reviewThreadModel, */
+            /*     connection: root.connection, */
+            /*     title: `${path}:${line}` */
+            /* }) */
+            /* applicationWindow().pageStack.push(instance) */
+        }
     }
 }

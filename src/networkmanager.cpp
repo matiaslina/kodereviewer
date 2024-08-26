@@ -134,6 +134,9 @@ void NetworkManager::replyFinished(QNetworkReply* reply)
         } else if (matchUrl("/pulls/\\d+/comments$", url)) {
             auto document = QJsonDocument::fromJson(contents);
             emit pullRequestThreadsFinished(contents);
+        } else if (matchUrl("/pulls/\\d+/comments/.+/replies$", url)) {
+            auto document = QJsonDocument::fromJson(contents);
+            emit sendThreadCommentFinished(contents);
         }
         break;
     case QNetworkReply::ProtocolUnknownError:
@@ -180,7 +183,6 @@ void NetworkManager::getPullRequestThreads(int pullRequestNumber)
 
 void NetworkManager::sendComment(int pullRequestNumber, QString comment)
 {
-    QByteArray data = "";
     QJsonDocument json = QJsonDocument(QJsonObject({
             {"body", comment}
             })
@@ -188,5 +190,16 @@ void NetworkManager::sendComment(int pullRequestNumber, QString comment)
     QString requestUrl = QString("/issues/%1/comments").arg(pullRequestNumber);
     setPending(true);
     setLastPendingRequest(requestUrl);
-    manager->post(requestFactory->createRequest(), json.toJson());
+    manager->post(requestFactory->createRequest(requestUrl), json.toJson());
+}
+
+void NetworkManager::sendThreadComment(int pullRequestNumber, int commentId, QString comment)
+{
+    QJsonDocument json = QJsonDocument(QJsonObject({
+                { "body", comment }
+            }));
+    QString requestUrl = QString("/pulls/%1/comments/%2/replies").arg(pullRequestNumber).arg(commentId);
+    setPending(true);
+    setLastPendingRequest(requestUrl);
+    manager->post(requestFactory->createRequest(requestUrl), json.toJson());
 }

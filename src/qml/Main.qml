@@ -83,6 +83,62 @@ Kirigami.ApplicationWindow {
         }
     }
 
+    contextDrawer: Kirigami.OverlayDrawer {
+        id: contextDrawer
+        enabled: root.currentReviewFile && root.currentPage == "ReviewFilePage"
+        width: Kirigami.Units.gridUnit * 20
+        modal: false
+        edge: Qt.application.layoutDirection == Qt.RightToLeft ? Qt.LeftEdge : Qt.RightEdge
+
+        handleClosedIcon.source: "documentinfo-symbolic"
+        handleClosedToolTip: i18nc("@action:button", "Show Room Information")
+
+        // Default icon is fine, only need to override the tooltip text
+        handleOpenToolTip: i18nc("@action:button", "Close Room Information Drawer")
+        handleVisible: enabled
+
+
+        leftPadding: 0
+        rightPadding: 0
+        topPadding: 0
+        bottomPadding: 0
+
+        contentItem: Loader {
+            id: loader
+            active: true
+            sourceComponent: ColumnLayout {
+                spacing: 0
+
+                QQC2.ToolBar {
+                    Layout.fillWidth: true
+
+                    Layout.preferredHeight: pageStack.globalToolBar.preferredHeight
+
+                    contentItem: RowLayout {
+                        Kirigami.Heading {
+                            Layout.fillWidth: true
+                            text: "File Comments"
+                        }
+                    }
+                }
+
+                QQC2.ScrollView {
+                    QQC2.ScrollBar.vertical.policy: QQC2.ScrollBar.AsNeeded
+                    QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Kirigami.CardsListView {
+                        id: cardsView
+                        model: root.currentPullRequest.reviewThreadModel(root.currentReviewFile.filename)
+                        delegate: CommentDelegate {}
+                    }
+                }
+            }
+        }
+
+        onEnabledChanged: drawerOpen = enabled
+    }
+
     pageStack.initialPage: WelcomePage {
         onProjectSelected: (project) => {
             root.project = project
@@ -108,6 +164,7 @@ Kirigami.ApplicationWindow {
             pullRequest: root.currentPullRequest
             git: root.gitBackend
             file: root.currentReviewFile
+            connection: root.connection
         }
     }
 

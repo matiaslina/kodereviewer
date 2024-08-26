@@ -150,6 +150,15 @@ ReviewThread *PullRequest::reviewThread(QString path)
     return nullptr;
 }
 
+ReviewThreadModel *PullRequest::reviewThreadModel(QString path)
+{
+    if (_threads.contains(path)) {
+        ReviewThread *thread = _threads[path];
+        return new ReviewThreadModel(thread);
+    }
+    return new ReviewThreadModel();
+}
+
 /***************************
  *       Comments
  **************************/
