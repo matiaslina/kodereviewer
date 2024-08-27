@@ -46,7 +46,6 @@ public:
 
     QJsonObject toObject();
 
-public slots:
     int id() const;
     QString nodeId() const;
     QString description() const;
@@ -115,11 +114,17 @@ class ReviewThread : public QObject {
      */
     Q_PROPERTY(QList<Review*> comments READ comments NOTIFY commentsChanged)
 
+     /**
+     * Holds the original line of the review
+     */
+    Q_PROPERTY(int originalLine READ originalLine NOTIFY originalLineChanged)
+
+
     QML_ELEMENT
 public:
     explicit ReviewThread(QObject *parent = nullptr);
-    ReviewThread(QString &path, int line, QObject *parent = nullptr);
-    ReviewThread(QString &path, int line, unsigned int startLine, unsigned int endLine, QObject *parent = nullptr);
+    ReviewThread(QString &path, int line, int originalLine, QObject *parent = nullptr);
+    ReviewThread(QString &path, int line, int originalLine, unsigned int startLine, unsigned int endLine, QObject *parent = nullptr);
     ~ReviewThread();
 
     void addReview(Review *review);
@@ -127,7 +132,6 @@ public:
     std::vector<Review *> reviews();
     bool hasId(unsigned int id);
 
-public slots:
     /**
      * Returns the path of the file.
      */
@@ -153,6 +157,16 @@ public slots:
 
     QList<Review *> comments() const;
 
+    /**
+     * Original line of the thread
+     */
+    int originalLine() const;
+
+    /**
+     * @returns If the review is outdated
+     */
+    bool isOutdated() const;
+
 signals:
     void pathChanged(QString path);
     void lineChanged(QString line);
@@ -165,12 +179,17 @@ signals:
      */
     void commentsChanged(QList<Review*> comment);
 
+    void originalLineChanged(int originalLine);
+
 private:
     QString _path;
-    int _line;
+
+    int _line; //< Line that the review is made. 0 in case is outdated
 
     unsigned int _startLine;
     unsigned int _endLine;
+
+    int _originalLine; //< Original line of the review. This doesn't dissapear
 
     std::vector<Review *> childs;
 };
@@ -185,20 +204,20 @@ class PullRequest : public QObject {
     Q_PROPERTY(int number READ number NOTIFY numberChanged)
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
     Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
-    Q_PROPERTY(int id READ id)
-    Q_PROPERTY(QUrl url READ url)
-    Q_PROPERTY(QUrl htmlUrl READ htmlUrl)
-    Q_PROPERTY(QUrl issuesUrl READ issuesUrl)
-    Q_PROPERTY(QUrl reviewCommentsUrl READ reviewCommentsUrl)
-    Q_PROPERTY(QUrl commentsUrl READ commentsUrl)
-    Q_PROPERTY(State state READ state)
-    Q_PROPERTY(QDateTime createdAt READ createdAt)
-    Q_PROPERTY(QDateTime updatedAt READ updatedAt)
+    Q_PROPERTY(int id READ id CONSTANT)
+    Q_PROPERTY(QUrl url READ url CONSTANT)
+    Q_PROPERTY(QUrl htmlUrl READ htmlUrl CONSTANT)
+    Q_PROPERTY(QUrl issuesUrl READ issuesUrl CONSTANT)
+    Q_PROPERTY(QUrl reviewCommentsUrl READ reviewCommentsUrl CONSTANT)
+    Q_PROPERTY(QUrl commentsUrl READ commentsUrl CONSTANT)
+    Q_PROPERTY(State state READ state CONSTANT)
+    Q_PROPERTY(QDateTime createdAt READ createdAt CONSTANT)
+    Q_PROPERTY(QDateTime updatedAt READ updatedAt CONSTANT)
 
     Q_PROPERTY(QString sourceRef READ sourceRef NOTIFY sourceRefChanged)
     Q_PROPERTY(QString targetRef READ targetRef NOTIFY targetRefChanged)
 
-    Q_PROPERTY(QHash<QString, ReviewThread*> fileThreads READ fileThreads NOTIFY fileThreadsChanged)
+    Q_PROPERTY(QHash<QPair<QString, int>, ReviewThread*> fileThreads READ fileThreads NOTIFY fileThreadsChanged)
 
     QML_ELEMENT
 
@@ -240,9 +259,10 @@ public:
     QString targetRef() const;
 
     /**
-     * A map of filename -> threads for this pull request
+     * A map of (filename, line) -> thread for this pull request
      */
-    QHash<QString, ReviewThread*> fileThreads() const;
+    QHash<QPair<QString, int>, ReviewThread*> fileThreads() const;
+
 
 public slots:
     /**
@@ -252,12 +272,18 @@ public slots:
     void loadThreads(QByteArray threadsDocument);
 
     /**
+     * Returns the lines of threads for a given path
+     */
+    QList<int> reviewThreadLines(QString path);
+
+    /**
      * Return a ReviewThread for path
      * @returns reviewThread
      */
-    ReviewThread *reviewThread(QString path);
+    ReviewThread *reviewThread(QString path, int line);
 
-    ReviewThreadModel *reviewThreadModel(QString path);
+    ReviewThreadModel *reviewThreadModel(QString path, int line);
+
 
 signals:
     void titleChanged(QString title);
@@ -291,7 +317,9 @@ private:
     QString _sourceRef;
     QString _targetRef;
 
-    QHash<QString, ReviewThread*> _threads;
+    QHash<QPair<QString, int>, ReviewThread*> _threads;
+
+    QHash<QPair<QString, int>, ReviewThreadModel*> _reviewThreadModels;
 };
 
 

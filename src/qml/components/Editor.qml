@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick 6.7
 import QtQuick.Controls 6.7 as QQC2
 import QtQuick.Layouts 6.7
@@ -81,26 +82,28 @@ TextEdit {
 
     Repeater {
         id: threadsRepeater
-        model: root.pullRequest.reviewThread(root.file)
+        model: root.pullRequest.reviewThreadLines(root.file)
 
         QQC2.Button {
+            required property int modelData
             icon.name: "edit-comment"
-            y: root.lineHeight * modelData.line
+            y: root.lineHeight * modelData
             anchors.right: root.right
 
             onClicked: {
-                root.commentClicked(modelData.path, modelData.line)
+                root.commentClicked(root.file, modelData)
             }
         }
     }
 
     Repeater {
         id: hightlightRepeater
-        model: root.pullRequest.reviewThread(root.file)
+        model: root.pullRequest.reviewThreadLines(root.file)
         delegate: Rectangle {
+            required property int modelData
             radius: 1
-            height: root.lineHeight * (modelData.endLine - modelData.startLine + 1)
-            y: modelData.startLine * root.lineHeight
+            height: root.lineHeight * modelData + 1 // (modelData.endLine - modelData.startLine + 1)
+            y: modelData * root.lineHeight
             color: "peachpuff"
             z: -1
             anchors {
@@ -114,8 +117,8 @@ TextEdit {
 
     onFileChanged: {
         repeater.model.resetModel()
-        threadsRepeater.model = root.pullRequest.reviewThread(root.file)
-        hightlightRepeater.model = root.pullRequest.reviewThread(root.file)
+        threadsRepeater.model = root.pullRequest.reviewThreadLines(root.file)
+        hightlightRepeater.model = root.pullRequest.reviewThreadLines(root.file)
     }
 
     MouseArea {

@@ -28,7 +28,7 @@ public:
 
 public slots:
     void loadData(QByteArray data);
-    File *get(int index) const;
+    File *get(int index);
 
 private:
     std::vector<File*> files;

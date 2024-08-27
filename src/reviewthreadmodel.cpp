@@ -22,7 +22,8 @@ int ReviewThreadModel::rowCount(const QModelIndex &) const
 
 QVariant ReviewThreadModel::data(const QModelIndex &index, int role) const
 {
-    auto comment = _thread->comments()[index.row()];
+    QList<Review*> reviews = _thread->comments();
+    Review *comment = reviews[index.row()];
     switch (role) {
     case IdRole:
         return comment->id();
@@ -58,6 +59,12 @@ QHash<int, QByteArray> ReviewThreadModel::roleNames() const
     };
 }
 
+void ReviewThreadModel::updateModel(ReviewThread *thread)
+{
+    beginResetModel();
+    _thread = thread;
+    endResetModel();
+}
 
 // Slots
 

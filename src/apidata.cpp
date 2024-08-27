@@ -1,4 +1,5 @@
 #include "apidata.h"
+#include "reviewthreadmodel.h"
 #include <memory>
 #include <qjsondocument.h>
 #include <qnamespace.h>
@@ -31,7 +32,8 @@ QJsonObject User::toObject()
  **************************/
 PullRequest::PullRequest(QObject *parent)
     : QObject(parent)
-{}
+{
+}
 
 PullRequest::PullRequest(QJsonDocument &document, QObject *parent)
     : QObject(parent)
@@ -100,9 +102,15 @@ QDateTime PullRequest::updatedAt() const { return _updatedAt; }
 QString PullRequest::sourceRef() const { return _sourceRef; }
 QString PullRequest::targetRef() const { return _targetRef; }
 
-QHash<QString, ReviewThread*> PullRequest::fileThreads() const
+QHash<QPair<QString, int>, ReviewThread*> PullRequest::fileThreads() const
 {
     return _threads;
+}
+
+ReviewThreadModel *PullRequest::reviewThreadModel(QString path, int line)
+{
+    QPair<QString, int> key(path, line);
+    return _reviewThreadModels[key];
 }
 
 // slots
@@ -116,47 +124,65 @@ void PullRequest::loadThreads(QByteArray threadsDocument)
         return;
     }
 
-    for (auto ref : json.array()) {
+    for (auto rt : std::as_const(_threads)) {
+        delete rt;
+        rt = nullptr;
+    }
+    _threads.clear();
+
+    QJsonArray threads = json.array();
+    for (auto ref : std::as_const(threads)) {
         auto document = QJsonDocument(ref.toObject());
         ReviewThread *rt = nullptr;
         QString path = document["path"].toString();
         int line = document["line"].toInt();
         int startLine = document["start_line"].toInt();
+        int originalLine = document["original_line"].toInt();
 
         if (startLine == 0) {
             startLine = line;
         }
 
+        QPair<QString, int> key(path, line);
 
-        if (!_threads.contains(path)) {
-            rt = new ReviewThread(path, line, startLine, line);
+        if (!_threads.contains(key)) {
+            rt = new ReviewThread(path, line, originalLine, startLine, line);
+            qDebug() << "Adding review thread model";
+            _reviewThreadModels[key] = new ReviewThreadModel(rt);
         } else {
-            rt = _threads[path];
+            rt = _threads[key];
         }
         Review *r = new Review(document);
         rt->addReview(r);
 
-        qDebug() << QString("Added review to %1 @ %2").arg(path).arg(line);
-        _threads[path] = rt;
+        _threads[key] = rt;
     }
 }
 
-ReviewThread *PullRequest::reviewThread(QString path)
+ReviewThread *PullRequest::reviewThread(QString path, int line)
 {
-    if (_threads.contains(path)) {
-        return _threads[path];
+    QPair<QString, int> key(path, line);
+    if (_threads.contains(key)) {
+        return _threads[key];
     }
     qDebug() << "Unknown path " << path;
     return nullptr;
 }
 
-ReviewThreadModel *PullRequest::reviewThreadModel(QString path)
+QList<int> PullRequest::reviewThreadLines(QString path)
 {
-    if (_threads.contains(path)) {
-        ReviewThread *thread = _threads[path];
-        return new ReviewThreadModel(thread);
+    QList<int> retval;
+
+    QList<QPair<QString, int>> keys = _threads.keys();
+    for(const auto &pair : std::as_const(keys)) {
+        if (pair.first == path) {
+            ReviewThread *thread = _threads[pair];
+            if (!thread->isOutdated()) {
+                retval << pair.second;
+            }
+        }
     }
-    return new ReviewThreadModel();
+    return retval;
 }
 
 /***************************
@@ -259,20 +285,22 @@ ReviewThread::ReviewThread(QObject *parent)
 {
 }
 
-ReviewThread::ReviewThread(QString &path, int line, QObject *parent)
+ReviewThread::ReviewThread(QString &path, int line, int originalLine, QObject *parent)
     : QObject(parent)
     , _path(path)
     , _line(line)
     , _startLine(line)
     , _endLine(line)
+    , _originalLine(originalLine)
 {}
 
-ReviewThread::ReviewThread(QString &path, int line, unsigned int startLine, unsigned int endLine, QObject *parent)
+ReviewThread::ReviewThread(QString &path, int line, int originalLine, unsigned int startLine, unsigned int endLine, QObject *parent)
     : QObject(parent)
     , _path(path)
     , _line(line)
     , _startLine(startLine)
     , _endLine(endLine)
+    , _originalLine(originalLine)
 {}
 
 ReviewThread::~ReviewThread() = default;
@@ -338,6 +366,17 @@ QList<Review *> ReviewThread::comments() const
     }
 
     return retval;
+}
+
+int ReviewThread::originalLine() const
+{
+    return _originalLine;
+}
+
+
+bool ReviewThread::isOutdated() const
+{
+    return line() == 0;
 }
 
 /***************************

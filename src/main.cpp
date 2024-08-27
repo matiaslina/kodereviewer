@@ -1,15 +1,16 @@
-#include <QApplication>
-#include <QQmlApplicationEngine>
-#include <QtQml>
-#include <QUrl>
-#include <QQuickStyle>
+#include <KIconTheme>
 #include <KLocalizedContext>
 #include <KLocalizedString>
-#include <KIconTheme>
-#include <qqml.h>
+#include <QApplication>
+#include <QQmlApplicationEngine>
+#include <QQuickStyle>
+#include <QSettings>
 #include <QStandardPaths>
-#include <qstandardpaths.h>
+#include <QUrl>
 #include <qgit2.h>
+#include <qqml.h>
+#include <QQmlContext>
+#include <qstandardpaths.h>
 
 #include "pullrequestmodel.h"
 #include "commentsmodel.h"

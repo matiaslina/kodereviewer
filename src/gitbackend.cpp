@@ -113,12 +113,12 @@ QStringList GitBackend::filesChanged()
     return l;
 }
 
-bool GitBackend::isRepositoryInitialized() const
+bool GitBackend::isRepositoryInitialized()
 {
     return repository != nullptr;
 }
 
-QString GitBackend::sourceFileContents(QString filename) const
+QString GitBackend::sourceFileContents(QString filename)
 {
     if (!isRepositoryInitialized() || _sourceRef.isEmpty()) {
         return "";
@@ -132,14 +132,14 @@ QString GitBackend::sourceFileContents(QString filename) const
     } catch (LibQGit2::Exception &e) {
         qDebug() << "sourceFileContents: " << e.what();
 
-        return QStringLiteral("");
+        return QString("");
     }
 }
 
-QString GitBackend::targetFileContents(QString filename) const
+QString GitBackend::targetFileContents(QString filename)
 {
     if (!isRepositoryInitialized() || _targetRef.isEmpty()) {
-        return QStringLiteral("");
+        return QString("");
     }
     Tree tree;
     try {
@@ -149,15 +149,15 @@ QString GitBackend::targetFileContents(QString filename) const
         return QString(blob.content());
     } catch (LibQGit2::Exception &e) {
         qDebug() << "targetFileContents: " << e.what();
-        return QStringLiteral("");
+        return QString("");
     }
 
 }
 
-QString GitBackend::diff(QString filename, DiffModel *model) const
+QString GitBackend::diff(QString filename, DiffModel *model)
 {
     if (!isRepositoryInitialized() || _targetRef.isEmpty() || _sourceRef.isEmpty()) {
-        return QStringLiteral("");
+        return QString("");
     }
     Diff diff = repository->diffTrees(targetTree(), sourceTree());
     qDebug() << diff.numDeltas();

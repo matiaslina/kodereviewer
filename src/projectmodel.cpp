@@ -35,6 +35,7 @@ ProjectModel::ProjectModel(QObject *parent)
 {
     auto appDataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     config = QUrl::fromLocalFile(appDataDir + "/projects.json");
+    qDebug() << config;
     QFile file(config.toLocalFile());
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QJsonDocument document = QJsonDocument::fromJson(file.readAll());
@@ -106,7 +107,7 @@ void ProjectModel::saveProjects()
 
     QJsonArray projectArray;
 
-    for (Project *project : projects) {
+    for (Project *project : std::as_const(projects)) {
         QJsonObject obj;
         obj["name"] = project->name();
         obj["owner"] = project->owner();
@@ -119,7 +120,7 @@ void ProjectModel::saveProjects()
 
 void ProjectModel::append(QString name, QUrl url, QString owner)
 {
-    beginInsertRows(QModelIndex(), 0, 0);
+    beginInsertRows(QModelIndex(), projects.size(), projects.size());
 
     projects.push_back(new Project(name, owner, url, QUrl("")));
     saveProjects();

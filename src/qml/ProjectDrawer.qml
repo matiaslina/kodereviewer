@@ -36,7 +36,7 @@ Kirigami.OverlayDrawer {
 
     handleVisible: enabled
 
-    enabled: currentProject.path != ""
+    enabled: currentProject.url != ""
     width: Kirigami.Units.gridUnit * 15
 
     leftPadding: 0
@@ -51,8 +51,6 @@ Kirigami.OverlayDrawer {
         id: filterModel
         sourceModel: drawer.model
         filterRoleName: "title"
-        sortRoleName: "number"
-        sortOrder: Qt.AscendingOrder
     }
 
     KItemModels.KSortFilterProxyModel {

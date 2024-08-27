@@ -43,7 +43,7 @@ private:
     QString _name;
     QString _owner;
     QUrl _url;
-    QUrl _path;
+    QUrl _path = QUrl("");
 };
 
 class Project;

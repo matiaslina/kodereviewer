@@ -86,17 +86,16 @@ void PullRequestModel::loadData(QByteArray data)
 {
     beginResetModel();
     auto json = QJsonDocument::fromJson(data);
-    if (!json.isArray()) {
-        qDebug() << "loadData(): Expecting array";
-        goto clean;
-    }
-    pullRequests.clear();
-    for (auto pr : json.array()) {
-        auto document = QJsonDocument(pr.toObject());
-        pullRequests.push_back(new PullRequest(document));
+    if (json.isArray()) {
+        pullRequests.clear();
+
+        auto arr = json.array();
+        for (auto pr : std::as_const(arr)) {
+            auto document = QJsonDocument(pr.toObject());
+            pullRequests.push_back(new PullRequest(document));
+        }
     }
 
- clean:
     endResetModel();
 }
 
@@ -109,7 +108,7 @@ QList<PullRequest*> PullRequestModel::getPullRequests()
     return retval;
 }
 
-PullRequest *PullRequestModel::get(int index) const
+PullRequest *PullRequestModel::get(int index)
 {
     return pullRequests.at(index);
 }

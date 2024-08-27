@@ -17,6 +17,8 @@ ListView {
     leftMargin: Kirigami.Units.largeSpacing * 2
     bottomMargin: Kirigami.Units.largeSpacing * 2 + commentToolbar.height
 
+    property bool loadingComments: true
+
 
     header: ColumnLayout {
         id: mainLayout
@@ -52,7 +54,14 @@ ListView {
     Kirigami.PlaceholderMessage {
         anchors.centerIn: parent
         width: parent.width - (Kirigami.Units.largeSpacing * 4)
-        visible: root.count === 0
+        visible: root.count === 0 && !root.loadingComments
+        text: "Nothing here"
+    }
+
+    Kirigami.PlaceholderMessage {
+        anchors.centerIn: parent
+        width: parent.width - (Kirigami.Units.largeSpacing * 4)
+        visible: root.loadingComments
         text: "Loading comments..."
     }
 }

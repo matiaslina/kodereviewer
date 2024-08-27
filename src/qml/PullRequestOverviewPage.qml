@@ -12,6 +12,8 @@ Kirigami.ScrollablePage {
     required property GitBackend git
     property int lastCommentsRequested: -1
 
+    property alias loadingComments: overview.loadingComments
+
     Kirigami.Theme.colorSet: Kirigami.Theme.View
     Kirigami.Theme.inherit: false
 
@@ -22,6 +24,7 @@ Kirigami.ScrollablePage {
     }
 
     PullRequestOverview {
+        id: overview
         visible: pullRequest != undefined
         pullRequest: root.pullRequest
         model: commentModel
@@ -45,6 +48,7 @@ Kirigami.ScrollablePage {
 
         function onPullRequestCommentsFinished(jsonResponse) {
             commentModel.loadData(jsonResponse)
+            root.loadingComments = false
         }
 
         function onPullRequestPostCommentFinished(jsonResponse) {
@@ -60,11 +64,14 @@ Kirigami.ScrollablePage {
         }
     }
 
-    onPullRequestChanged: {
-        if (pullRequest != undefined && lastCommentsRequested != pullRequest.number && !root.connection.pending) {
+    Connections {
+        target: root.pullRequest
+        function onNumberChanged() {
             lastCommentsRequested = pullRequest.number
-            root.connection.getPullRequestComments(root.pullRequest.number)
             root.connection.getPullRequestThreads(root.pullRequest.number)
+
+            root.connection.getPullRequestComments(root.pullRequest.number)
+            root.loadingComments = true
         }
     }
 }

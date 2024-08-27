@@ -2,6 +2,7 @@
 #define REVIEWTHREADMODEL_H
 
 #include <QAbstractListModel>
+#include <qtmetamacros.h>
 
 class ReviewThread;
 
@@ -28,12 +29,13 @@ public:
 
     QHash<int, QByteArray> roleNames() const override;
 
-public slots:
     /**
      * Gets the id of the first comment of the thread to post a reply
      * @returns the id of the first comment
      */
-    int getThreadId() const;
+    Q_INVOKABLE int getThreadId() const;
+
+    void updateModel(ReviewThread *thread);
 
 private:
     ReviewThread *_thread;

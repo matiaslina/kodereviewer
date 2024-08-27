@@ -4,7 +4,9 @@
         <file>qml/ProjectDrawer.qml</file>
         <file>qml/PullRequestOverviewPage.qml</file>
         <file>qml/ReviewFilePage.qml</file>
-        <file>qml/CommentWindow.qml</file>
+        <file>qml/CommentSideBar.qml</file>
+        <file>qml/WelcomePage.qml</file>
+        <file>qml/AddRepositoryPage.qml</file>
 
 
         <file>qml/components/CommentControl.qml</file>

@@ -37,11 +37,11 @@ public:
 
 public slots:
     QStringList filesChanged();
-    bool isRepositoryInitialized() const;
+    bool isRepositoryInitialized();
 
-    QString sourceFileContents(QString filename) const;
-    QString targetFileContents(QString filename) const;
-    QString diff(QString filename, DiffModel *model = nullptr) const;
+    QString sourceFileContents(QString filename);
+    QString targetFileContents(QString filename);
+    QString diff(QString filename, DiffModel *model = nullptr);
 
 signals:
     void pathChanged(QString path);

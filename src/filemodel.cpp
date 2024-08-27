@@ -56,22 +56,19 @@ void FileModel::loadData(QByteArray data)
 {
     beginResetModel();
     QJsonDocument json = QJsonDocument::fromJson(data);
-    if (!json.isArray()) {
-        qDebug() << "FileModel::loadData(): expecting array";
-        goto clean;
+    if (json.isArray()) {
+        files.clear();
+        QJsonArray arr = json.array();
+        for (auto file : std::as_const(arr)) {
+            QJsonDocument document(file.toObject());
+            files.push_back(new File(document));
+        }
     }
 
-    files.clear();
-    for (auto file : json.array()) {
-        QJsonDocument document(file.toObject());
-        files.push_back(new File(document));
-    }
-
- clean:
     endResetModel();
 }
 
-File *FileModel::get(int index) const
+File *FileModel::get(int index)
 {
     return files[index];
 }

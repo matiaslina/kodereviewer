@@ -58,7 +58,6 @@ public:
     explicit NetworkManager(QObject* parent = nullptr);
     ~NetworkManager() override;
 
-public slots:
     /** Holds the owner of the github account. */
     QString owner() const;
 
@@ -105,7 +104,8 @@ public slots:
      */
     QString lastPendingRequest() const;
 
-    /**
+public slots:
+        /**
      * Do a GET request to `<base-url>/pulls`
      *
      * When finished the signal ::pullRequestFinished(QByteArray doc)

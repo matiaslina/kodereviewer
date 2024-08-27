@@ -53,8 +53,10 @@ ecm_target_qml_sources(kode-reviewer
     qml/ReviewFilePage.qml
     qml/SettingsPage.qml
     qml/WelcomePage.qml
+    qml/AddRepositoryPage.qml
 
-    qml/CommentWindow.qml
+
+    qml/CommentSideBar.qml
 
     qml/components/DrawerHeader.qml
     qml/components/RoundedImage.qml

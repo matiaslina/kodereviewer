@@ -59,21 +59,7 @@ Kirigami.ScrollablePage {
         pullRequest: root.pullRequest
 
         onCommentClicked: (path, line) => {
-            /* const component = Qt.createComponent("CommentWindow.qml") */
-            /* if (component.status === Component.Error) { */
-            /*     console.error(component.errorString()) */
-            /*     return */
-            /* } */
-            /* const reviewThreadModel = root.pullRequest.reviewThreadModel(path); */
-            /* print(reviewThreadModel) */
-            /* const instance = component.createObject(root, { */
-            /*     commentId: "", */
-            /*     pullRequestNumber: root.pullRequest.number, */
-            /*     model: reviewThreadModel, */
-            /*     connection: root.connection, */
-            /*     title: `${path}:${line}` */
-            /* }) */
-            /* applicationWindow().pageStack.push(instance) */
+            applicationWindow().openCommentSideBar(path, line)
         }
     }
 }

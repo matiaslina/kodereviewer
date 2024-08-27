@@ -65,16 +65,14 @@ void NetworkManager::setUrl()
 {
     if (!_owner.isEmpty() && !_repo.isEmpty()) {
         setUrl(_owner, _repo);
-        qDebug() << "Setting url" << baseUrl();
+        // qDebug() << "Setting url" << baseUrl();
         emit baseUrlChanged(baseUrl());
     }
 }
 
 void NetworkManager::setUrl(QString owner, QString repo)
 {
-    base = QUrl(tr("https://api.github.com/repos/%1/%2")
-                    .arg(owner)
-                    .arg(repo));
+    base = QUrl(QString("https://api.github.com/repos/%1/%2").arg(owner, repo));
     requestFactory->setBaseUrl(base);
 }
 
@@ -109,40 +107,51 @@ void NetworkManager::replyFinished(QNetworkReply* reply)
 {
     QString url = reply->url().toString();
     auto contents = reply->readAll();
-    qDebug() << url;
+    // qDebug() << "<----" << url;
 
     // auto headers = reply->rawHeaderPairs();
     // for (auto header : headers) {
-    //     qDebug() << header.first << ": " << header.second;
+    //     // qDebug() << header.first << ": " << header.second;
     // }
 
     switch (reply->error()) {
     case QNetworkReply::NoError:
         if (matchUrl("/pulls$", url)) {
             auto document = QJsonDocument::fromJson(contents);
+            // qDebug() << "Emiting pull request finished";
             emit pullRequestFinished(document.toJson());
         } else if (matchUrl("/issues/\\d+/comments$", url)) {
             auto document = QJsonDocument::fromJson(contents);
             if (reply->operation() == QNetworkAccessManager::Operation::GetOperation) {
+                // qDebug() << "Emiting GET comments finished";
                 emit pullRequestCommentsFinished(document.toJson());
             } else if (reply->operation() == QNetworkAccessManager::Operation::PostOperation){
+                // qDebug() << "Emiting POST comments finished";
                 emit pullRequestPostCommentFinished(document.toJson());
             }
         } else if (matchUrl("/pulls/\\d+/files$", url)) {
             auto document = QJsonDocument::fromJson(contents);
+            // qDebug() << "Emiting files finished";
             emit pullRequestFilesFinished(document.toJson());
         } else if (matchUrl("/pulls/\\d+/comments$", url)) {
             auto document = QJsonDocument::fromJson(contents);
-            emit pullRequestThreadsFinished(contents);
+            // qDebug() << "Emiting pulls comments finished";
+            emit pullRequestThreadsFinished(document.toJson());
         } else if (matchUrl("/pulls/\\d+/comments/.+/replies$", url)) {
             auto document = QJsonDocument::fromJson(contents);
-            emit sendThreadCommentFinished(contents);
+            // qDebug() << "Emiting threads finished";
+            emit sendThreadCommentFinished(document.toJson());
+        } else {
+            // qDebug() << "Not matching url: " << url;
         }
         break;
     case QNetworkReply::ProtocolUnknownError:
+        // qDebug() << "Protocol unknown error";
         {};
     default:
         auto document = QJsonDocument::fromJson(contents);
+        qDebug() << "<----" << url;
+
         qDebug() << document;
         emit errorOcurred(&document);
     }
@@ -160,6 +169,8 @@ void NetworkManager::getPullRequests()
 void NetworkManager::getPullRequestComments(int pullRequestNumber)
 {
     QString requestUrl = QString("/issues/%1/comments").arg(pullRequestNumber);
+    // qDebug() << "---->" << requestUrl;
+
     setPending(true);
     setLastPendingRequest(requestUrl);
     manager->get(requestFactory->createRequest(requestUrl));
@@ -168,6 +179,8 @@ void NetworkManager::getPullRequestComments(int pullRequestNumber)
 void NetworkManager::getPullRequestFiles(int pullRequestNumber)
 {
     QString requestUrl = QString("/pulls/%1/files").arg(pullRequestNumber);
+    // qDebug() << "---->" << requestUrl;
+
     setPending(true);
     setLastPendingRequest(requestUrl);
     manager->get(requestFactory->createRequest(requestUrl));
@@ -176,6 +189,7 @@ void NetworkManager::getPullRequestFiles(int pullRequestNumber)
 void NetworkManager::getPullRequestThreads(int pullRequestNumber)
 {
     QString requestUrl = QString("/pulls/%1/comments").arg(pullRequestNumber);
+    // qDebug() << "---->" << requestUrl;
     setPending(true);
     setLastPendingRequest(requestUrl);
     manager->get(requestFactory->createRequest(requestUrl));
@@ -188,6 +202,7 @@ void NetworkManager::sendComment(int pullRequestNumber, QString comment)
             })
         );
     QString requestUrl = QString("/issues/%1/comments").arg(pullRequestNumber);
+    // qDebug() << "---->" << requestUrl;
     setPending(true);
     setLastPendingRequest(requestUrl);
     manager->post(requestFactory->createRequest(requestUrl), json.toJson());
@@ -199,6 +214,8 @@ void NetworkManager::sendThreadComment(int pullRequestNumber, int commentId, QSt
                 { "body", comment }
             }));
     QString requestUrl = QString("/pulls/%1/comments/%2/replies").arg(pullRequestNumber).arg(commentId);
+    // qDebug() << "---->" << requestUrl;
+
     setPending(true);
     setLastPendingRequest(requestUrl);
     manager->post(requestFactory->createRequest(requestUrl), json.toJson());

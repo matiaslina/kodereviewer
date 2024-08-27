@@ -3,6 +3,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QJsonValue>
 
 CommentModel::CommentModel(QObject *parent)
     : QAbstractListModel(parent)
@@ -55,16 +56,16 @@ void CommentModel::loadData(QByteArray data)
 {
     beginResetModel();
     auto json = QJsonDocument::fromJson(data);
-    if (!json.isArray()) {
-        qDebug() << "CommentModel::loadData(): Expecting array";
-        goto clean;
+    if (json.isArray()) {
+        comments.clear();
+        QJsonObject value;
+        QJsonArray commentArray = json.array();
+        for (auto comment : std::as_const(commentArray)) {
+            value = comment.toObject();
+            auto document = QJsonDocument(value);
+            comments.push_back(new Comment(document));
+        }
     }
-    comments.clear();
-    for (auto comment : json.array()) {
-        auto document = QJsonDocument(comment.toObject());
-        comments.push_back(new Comment(document));
-    }
- clean:
     endResetModel();
 }
 
