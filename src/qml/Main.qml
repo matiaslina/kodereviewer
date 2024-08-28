@@ -95,34 +95,8 @@ Kirigami.ApplicationWindow {
         onProjectSelected: (project) => {
             root.project = project
             root.connection.getPullRequests();
-            root.pageStack.replace(pullRequestOverviewPage)
         }
     }
-
-    Component {
-        id: pullRequestOverviewPage
-        PullRequestOverviewPage {
-            visible: !!root.project
-            pullRequest: root.currentPullRequest
-            connection: root.connection
-            git: root.gitBackend
-        }
-    }
-
-    Loader {
-        active: root.project && root.currentReviewFile
-        Component {
-            id: reviewFilePage
-            ReviewFilePage {
-                visible: root.project && root.currentReviewFile
-                pullRequest: root.currentPullRequest
-                git: root.gitBackend
-                file: root.currentReviewFile
-                connection: root.connection
-            }
-        }
-    }
-
     onCurrentPullRequestChanged: {
         if (currentPullRequest) {
             gitBackend.sourceRef = currentPullRequest.sourceRef
@@ -130,25 +104,28 @@ Kirigami.ApplicationWindow {
             root.connection.getPullRequestThreads(currentPullRequest.number)
         }
         currentPage = "PullRequestOverview"
-        pageStack.replace(pullRequestOverviewPage);
+        switchToPullRequestOverview()
     }
 
     onCurrentReviewFileChanged: {
         if (currentReviewFile && currentPage != "ReviewFilePage") {
             currentPage = "ReviewFilePage"
-            pageStack.replace(reviewFilePage)
+            switchToReviewFile(currentReviewFile)
         }
     }
 
     function switchToReviewFile(file) {
         currentPage = "ReviewFilePage"
         currentReviewFile = file
-        pageStack.replace(reviewFilePage)
+
+        const page = pagePool.loadPage("qrc:qml/ReviewFilePage.qml")
+        pageStack.replace(page)
     }
 
     function switchToPullRequestOverview() {
         currentPage = "PullRequestOverview"
-        pageStack.replace(pullRequestOverviewPage)
+        const page = pagePool.loadPage("qrc:qml/PullRequestOverviewPage.qml")
+        pageStack.replace(page);
     }
 
     function openCommentSideBar(path, line) {

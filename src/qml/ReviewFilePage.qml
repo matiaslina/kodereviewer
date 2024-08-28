@@ -7,10 +7,11 @@ import org.kde.kodereviewer
 
 Kirigami.ScrollablePage {
     id: root
-    required property NetworkManager connection
-    property PullRequest pullRequest
-    property GitBackend git
-    property File file
+
+    property PullRequest pullRequest: applicationWindow().currentPullRequest
+    property NetworkManager connection: applicationWindow().connection
+    property GitBackend git: applicationWindow().gitBackend
+    property File file: applicationWindow().currentReviewFile
     padding: Kirigami.Units.smallSpacing
 
     title: `${pullRequest.title} - ${file.filename}`

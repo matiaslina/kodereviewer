@@ -98,7 +98,7 @@ TextEdit {
 
     Repeater {
         id: hightlightRepeater
-        model: root.pullRequest.reviewThreadLines(root.file)
+        model: root.pullRequest.reviewThreadLines(root.file.filename)
         delegate: Rectangle {
             required property int modelData
             radius: 1

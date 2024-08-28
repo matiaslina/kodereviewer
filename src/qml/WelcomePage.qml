@@ -13,6 +13,8 @@ FormCard.FormCardPage {
 
     signal projectSelected(Project project)
 
+    property bool isProjectSelected: false
+
     ProjectModel {
         id: projectModel
     }
@@ -36,17 +38,19 @@ FormCard.FormCardPage {
 
         Layout.alignment: Qt.AlignHCenter
         Layout.topMargin: Kirigami.Units.largeSpacing
+
+        visible: !root.isProjectSelected
     }
 
     FormCard.FormHeader {
         id: existingProjectsHeader
         title: "Existing projects"
-        visible: projectModel.rowCount() > 0
+        visible: projectModel.rowCount() > 0 && !root.isProjectSelected
     }
 
 
     FormCard.FormCard {
-        visible: existingProjectsHeader.visible
+        visible: existingProjectsHeader.visible && !root.isProjectSelected
 
         Repeater {
             id: loadedProjects
@@ -57,16 +61,21 @@ FormCard.FormCardPage {
                 required property int index
                 text: name
                 description: url
-                onClicked: root.projectSelected(projectModel.get(index))
+                onClicked: {
+                    isProjectSelected = true
+                    root.projectSelected(projectModel.get(index))
+                }
             }
         }
     }
 
     FormCard.FormHeader {
         title: "Add new project"
+        visible: !root.isProjectSelected
     }
 
     FormCard.FormCard {
+        visible: !root.isProjectSelected
         FormCard.FormButtonDelegate {
             text: "Add new project"
             onClicked: applicationWindow().pageStack.push(addRepositoryPage)

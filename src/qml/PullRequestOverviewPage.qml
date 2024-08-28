@@ -7,9 +7,9 @@ import org.kde.kodereviewer
 
 Kirigami.ScrollablePage {
     id:root
-    required property PullRequest pullRequest
-    required property NetworkManager connection
-    required property GitBackend git
+    property PullRequest pullRequest: applicationWindow().currentPullRequest
+    property NetworkManager connection: applicationWindow().connection
+    property GitBackend git: applicationWindow().gitBackend
     property int lastCommentsRequested: -1
 
     property alias loadingComments: overview.loadingComments
@@ -64,14 +64,13 @@ Kirigami.ScrollablePage {
         }
     }
 
-    Connections {
-        target: root.pullRequest
-        function onNumberChanged() {
-            lastCommentsRequested = pullRequest.number
-            root.connection.getPullRequestThreads(root.pullRequest.number)
-
-            root.connection.getPullRequestComments(root.pullRequest.number)
-            root.loadingComments = true
-        }
+    onPullRequestChanged: {
+        print("Getting threads comments")
+        lastCommentsRequested = pullRequest.number
+        root.connection.getPullRequestThreads(root.pullRequest.number)
+        print("Getting comments")
+        root.connection.getPullRequestComments(root.pullRequest.number)
+        root.loadingComments = true
     }
+
 }
