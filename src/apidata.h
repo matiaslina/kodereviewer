@@ -374,13 +374,13 @@ private:
 class File : public QObject {
     Q_OBJECT
 
-    Q_PROPERTY(QString sha READ sha NOTIFY shaChanged)
-    Q_PROPERTY(QString filename READ filename NOTIFY filenameChanged)
-    Q_PROPERTY(QString status READ status NOTIFY statusChanged)
-    Q_PROPERTY(int additions READ additions NOTIFY additionsChanged)
-    Q_PROPERTY(int deletions READ deletions NOTIFY deletionsChanged)
-    Q_PROPERTY(int changes READ changes NOTIFY changesChanged)
-    Q_PROPERTY(QString patch READ patch NOTIFY patchChanged)
+    Q_PROPERTY(QString sha READ sha CONSTANT)
+    Q_PROPERTY(QString filename READ filename CONSTANT)
+    Q_PROPERTY(QString status READ status CONSTANT)
+    Q_PROPERTY(int additions READ additions CONSTANT)
+    Q_PROPERTY(int deletions READ deletions CONSTANT)
+    Q_PROPERTY(int changes READ changes CONSTANT)
+    Q_PROPERTY(QString patch READ patch CONSTANT)
 
     QML_ELEMENT
 public:
