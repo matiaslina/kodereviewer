@@ -14,6 +14,7 @@ Kirigami.OverlayDrawer {
     property string currentPage: ""
     required property PullRequest pullRequest
     required property File reviewFile
+    property NetworkManager connection: applicationWindow().connection
 
     /**
      * Holds if there's an open review thread
@@ -69,6 +70,16 @@ Kirigami.OverlayDrawer {
                     delegate: CommentDelegate {}
                 }
             }
+
+            CommentControl {
+                Layout.fillWidth: true
+                Layout.fillHeight: false
+                onCommentSent: comment => {
+                    const id = loader.model.getThreadId()
+                    print(`Sending ${comment} to ${id}`)
+                    root.connection.sendThreadComment(pullRequest.number, id, comment)
+                }
+            }
         }
     }
 
@@ -76,6 +87,13 @@ Kirigami.OverlayDrawer {
         loader.model = root.pullRequest.reviewThreadModel(filename, line)
         root.openReviewThread = true
         drawerOpen = true
+    }
+
+    Connections {
+        target: root.connection
+        function onSendThreadCommentFinished(response) {
+            loader.model.addComment(response)
+        }
     }
 
     onEnabledChanged: drawerOpen = enabled

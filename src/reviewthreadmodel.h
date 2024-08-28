@@ -35,6 +35,11 @@ public:
      */
     Q_INVOKABLE int getThreadId() const;
 
+    /**
+     * Adds a comment after sending it to github
+     */
+    Q_INVOKABLE void addComment(QByteArray response);
+
     void updateModel(ReviewThread *thread);
 
 private:

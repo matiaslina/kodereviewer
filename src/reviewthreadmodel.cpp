@@ -1,5 +1,6 @@
 #include "reviewthreadmodel.h"
 #include <qabstractitemmodel.h>
+#include <qtypes.h>
 #include "apidata.h"
 
 ReviewThreadModel::ReviewThreadModel(QObject *parent)
@@ -75,4 +76,14 @@ int ReviewThreadModel::getThreadId() const
     }
 
     return 0;
+}
+
+void ReviewThreadModel::addComment(QByteArray response)
+{
+    qsizetype commentCount = _thread->comments().size();
+    beginInsertRows(QModelIndex(), commentCount, commentCount);
+    QJsonDocument doc = QJsonDocument::fromJson(response);
+    Review *review = new Review(doc);
+    _thread->addReview(review);
+    endInsertRows();
 }

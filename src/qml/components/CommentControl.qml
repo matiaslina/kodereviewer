@@ -55,6 +55,7 @@ QQC2.Control {
                 QQC2.ScrollBar.vertical.policy: QQC2.ScrollBar.AsNeeded
 
                 QQC2.TextArea {
+
                     id: textField
 
                     placeholderText: "Comment..."
