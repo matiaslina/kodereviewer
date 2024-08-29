@@ -16,6 +16,19 @@ Kirigami.OverlayDrawer {
     required property File reviewFile
     property NetworkManager connection: applicationWindow().connection
 
+        Kirigami.Theme.colorSet: Kirigami.Theme.View
+    Kirigami.Theme.inherit: false
+
+    /**
+     * Holds which line it's beign reviewed
+     */
+    property int line: 0
+
+    /**
+     * Holds the hunk to show in the header
+     */
+    property string diffHunk: ""
+
     /**
      * Holds if there's an open review thread
      */
@@ -59,6 +72,7 @@ Kirigami.OverlayDrawer {
             }
 
             QQC2.ScrollView {
+                id: scrollView
                 QQC2.ScrollBar.vertical.policy: QQC2.ScrollBar.AsNeeded
                 QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
                 Layout.fillWidth: true
@@ -68,6 +82,25 @@ Kirigami.OverlayDrawer {
                     id: cardsView
                     model: loader.model
                     delegate: CommentDelegate {}
+                    clip: true
+                    headerPositioning: ListView.InlineHeader
+                    header: ColumnLayout {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+
+                        SourceCodeText {
+                            Layout.bottomMargin: Kirigami.Units.largeSpacing
+                            Layout.topMargin: Kirigami.Units.largeSpacing
+                            visible: root.diffHunk != ""
+                            text: root.diffHunk
+                        }
+                    }
+                }
+
+                Kirigami.PlaceholderMessage {
+                    visible: cardsView.count === 0
+                    anchors.centerIn: parent
+                    text: "New comment"
                 }
             }
 
@@ -76,22 +109,40 @@ Kirigami.OverlayDrawer {
                 Layout.fillHeight: false
                 onCommentSent: comment => {
                     const id = loader.model.getThreadId()
-                    print(`Sending ${comment} to ${id}`)
-                    root.connection.sendThreadComment(pullRequest.number, id, comment)
+                    if (id !== 0) {
+                        root.connection.sendThreadComment(root.pullRequest.number, id, comment)
+                    } else {
+                        // Create a new review
+                        root.connection.createThread(
+                            root.pullRequest.number,
+                            comment,
+                            root.pullRequest.head.sha,
+                            root.reviewFile.filename,
+                            1
+                        )
+                    }
                 }
             }
         }
     }
 
     function loadReviewThreadModel(filename, line) {
-        loader.model = root.pullRequest.reviewThreadModel(filename, line)
+        const reviewThreadModel = root.pullRequest.reviewThreadModel(filename, line)
+        loader.model = reviewThreadModel
+        root.line = line
         root.openReviewThread = true
+        root.diffHunk = reviewThreadModel.diffHunk()
         drawerOpen = true
     }
 
     Connections {
         target: root.connection
         function onSendThreadCommentFinished(response) {
+            loader.model.addComment(response)
+        }
+
+        function onCreateThreadFinished(response) {
+            print("Create thread finished? ")
             loader.model.addComment(response)
         }
     }

@@ -81,5 +81,4 @@ FormCard.FormCardPage {
             onClicked: applicationWindow().pageStack.push(addRepositoryPage)
         }
     }
-
 }

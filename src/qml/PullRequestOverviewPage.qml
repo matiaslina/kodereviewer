@@ -25,18 +25,12 @@ Kirigami.ScrollablePage {
 
     PullRequestOverview {
         id: overview
-        visible: pullRequest != undefined
         pullRequest: root.pullRequest
         model: commentModel
     }
 
-    QQC2.Label {
-        anchors.fill: parent
-        visible: root.pullRequest == undefined
-        text: "Select a pull request"
-    }
-
     footer: CommentControl {
+        visible: pullRequest
         onCommentSent: (comment) => {
             root.connection.sendComment(root.pullRequest.number, comment)
         }
@@ -65,12 +59,12 @@ Kirigami.ScrollablePage {
     }
 
     onPullRequestChanged: {
-        print("Getting threads comments")
-        lastCommentsRequested = pullRequest.number
-        root.connection.getPullRequestThreads(root.pullRequest.number)
-        print("Getting comments")
-        root.connection.getPullRequestComments(root.pullRequest.number)
-        root.loadingComments = true
+        if  (pullRequest) {
+            lastCommentsRequested = pullRequest.number
+            root.connection.getPullRequestThreads(root.pullRequest.number)
+            root.connection.getPullRequestComments(root.pullRequest.number)
+            root.loadingComments = true
+        }
     }
 
 }

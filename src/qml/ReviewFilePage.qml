@@ -32,6 +32,7 @@ Kirigami.ScrollablePage {
             text: "Add comment"
             onTriggered: {
                 print("Adding comment")
+                applicationWindow().openCommentSideBar(root.file.filename, 0)
             }
         }
     ]

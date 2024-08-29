@@ -135,8 +135,13 @@ void NetworkManager::replyFinished(QNetworkReply* reply)
             emit pullRequestFilesFinished(document.toJson());
         } else if (matchUrl("/pulls/\\d+/comments$", url)) {
             auto document = QJsonDocument::fromJson(contents);
+            if (reply->operation() == QNetworkAccessManager::Operation::GetOperation) {
             // qDebug() << "Emiting pulls comments finished";
-            emit pullRequestThreadsFinished(document.toJson());
+                emit pullRequestThreadsFinished(document.toJson());
+            } else if (reply->operation() == QNetworkAccessManager::Operation::PostOperation) {
+                qDebug() << "Create thead finished";
+                emit createThreadFinished(document.toJson());
+            }
         } else if (matchUrl("/pulls/\\d+/comments/.+/replies$", url)) {
             auto document = QJsonDocument::fromJson(contents);
             // qDebug() << "Emiting threads finished";
@@ -193,6 +198,24 @@ void NetworkManager::getPullRequestThreads(int pullRequestNumber)
     setPending(true);
     setLastPendingRequest(requestUrl);
     manager->get(requestFactory->createRequest(requestUrl));
+}
+
+void NetworkManager::createThread(int pullRequestNumber, QString comment, QString commitId, QString path, int line)
+{
+    QString requestUrl = QString("/pulls/%1/comments").arg(pullRequestNumber);
+    setPending(true);
+    setLastPendingRequest(requestUrl);
+    QJsonDocument body = QJsonDocument(QJsonObject({
+                { "body", comment },
+                { "commit_id", commitId },
+                { "path", path },
+                // For file is not needed
+                //                { "line", line },
+                { "side", "RIGHT" },
+                {"subject_type", "file" } // Could be file or line
+            }));
+    qDebug() << body;
+    manager->post(requestFactory->createRequest(requestUrl), body.toJson());
 }
 
 void NetworkManager::sendComment(int pullRequestNumber, QString comment)

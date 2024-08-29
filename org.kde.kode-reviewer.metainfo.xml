@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SPDX-License-Identifier: FSFAP
+  SPDX-FileCopyrightText: 2024 Carl Schwan <carl@carlschwan.eu>
+ -->
+<component type="desktop-application">
+  <id>org.kde.kode-reviewer</id>
+  <name>Kode Reviewer</name>
+  <summary>Code reviewer</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0-only</project_license>
+  <developer id="kde.org">
+    <name>The KDE Community</name>
+    <url>https://kde.org</url>
+  </developer>
+  <description>
+    <p>Review Github pull requests</p>
+  </description>
+</component>

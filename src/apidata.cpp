@@ -28,6 +28,32 @@ QJsonObject User::toObject()
 }
 
 /***************************
+ *       PullRequestHead
+ **************************/
+
+PullRequestHead::PullRequestHead(QObject *parent)
+    : QObject(parent)
+    , _label("")
+    , _ref("")
+    , _sha("")
+{
+}
+
+PullRequestHead::PullRequestHead(QJsonDocument &document, QObject *parent)
+    : QObject(parent)
+{
+    this->_label = document["label"].toString();
+    this->_ref = document["ref"].toString();
+    this->_sha = document["sha"].toString();
+}
+
+PullRequestHead::~PullRequestHead() = default;
+
+QString PullRequestHead::label() const { return _label; }
+QString PullRequestHead::ref() const { return _ref; }
+QString PullRequestHead::sha() const { return _sha; }
+
+/***************************
  *       Pull Request
  **************************/
 PullRequest::PullRequest(QObject *parent)
@@ -69,6 +95,8 @@ PullRequest::PullRequest(QJsonDocument &document, QObject *parent)
 
     auto head = document[QStringLiteral("head")].toObject();
     _sourceRef = head[QStringLiteral("ref")].toString();
+    QJsonDocument _d = QJsonDocument(head);
+    this->_head = std::make_unique<PullRequestHead>(_d);
 
     auto base = document[QStringLiteral("base")].toObject();
     _targetRef = base[QStringLiteral("ref")].toString();
@@ -98,6 +126,10 @@ QString PullRequest::description() const { return _description; }
 
 QDateTime PullRequest::createdAt() const { return _createdAt; }
 QDateTime PullRequest::updatedAt() const { return _updatedAt; }
+PullRequestHead *PullRequest::head() const
+{
+    return _head.get();
+}
 
 QString PullRequest::sourceRef() const { return _sourceRef; }
 QString PullRequest::targetRef() const { return _targetRef; }
@@ -110,7 +142,15 @@ QHash<QPair<QString, int>, ReviewThread*> PullRequest::fileThreads() const
 ReviewThreadModel *PullRequest::reviewThreadModel(QString path, int line)
 {
     QPair<QString, int> key(path, line);
-    return _reviewThreadModels[key];
+    ReviewThreadModel *model = _reviewThreadModels[key];
+
+    if (model == nullptr) {
+        ReviewThread *rt = new ReviewThread(path, line, line);
+        model = new ReviewThreadModel(rt);
+        _reviewThreadModels[key] = model;
+    }
+
+    return model;
 }
 
 // slots
@@ -240,6 +280,7 @@ Review::Review(QJsonDocument &doc, QObject *parent)
     this->_description = doc[QStringLiteral("body")].toString();
     this->_createdAt = QDateTime::fromString(doc[QStringLiteral("created_at")].toString(), Qt::ISODate);
     this->_updatedAt = QDateTime::fromString(doc[QStringLiteral("updated_at")].toString(), Qt::ISODate);
+    this->_commitId = doc["commit_id"].toString();
 
     QJsonDocument userDocument(doc[QStringLiteral("user")].toObject());
     this->_user = std::make_unique<User>(userDocument);
@@ -260,6 +301,16 @@ QDateTime Review::updatedAt() const { return _updatedAt; }
 
 QString Review::username() const { return _user->username; }
 QUrl Review::avatarUrl() const { return _user->avatarUrl; }
+
+QString Review::commitId() const
+{
+    return _commitId;
+}
+
+QString Review::diffHunk() const
+{
+    return _diffHunk;
+}
 
 QJsonObject Review::toObject()
 {
@@ -373,6 +424,13 @@ int ReviewThread::originalLine() const
     return _originalLine;
 }
 
+QString ReviewThread::diffHunk() const
+{
+    if (childs.size() > 0) {
+        return childs[0]->diffHunk();
+    }
+    return "";
+}
 
 bool ReviewThread::isOutdated() const
 {

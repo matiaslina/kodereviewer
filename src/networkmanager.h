@@ -147,6 +147,17 @@ public slots:
     void getPullRequestThreads(int pullRequestNumber);
 
     /**
+     * Send a new review  thread
+     *
+     * This does a POST to `<base-url>/pulls/<pullRequestNumber>/comments
+     *
+     * When finished the signal
+     * ::createThreadFinished(QByteArray doc) is triggered with
+     * the body of the request in `doc`
+     */
+    void createThread(int pullRequestNumber, QString comment, QString commitId, QString path, int line);
+
+    /**
      * Send a comment to the github's base discussion of the pull request
      *
      * This does a POST request to `<base-url>/issues/<pullRequestNumber>/comments`
@@ -218,6 +229,11 @@ signals:
      * Signal emmited when getPullRequestThreads() finishes.
      */
     void pullRequestThreadsFinished(QByteArray document);
+
+    /**
+     * Signal emmited when createThread() finishes
+     */
+    void createThreadFinished(QByteArray document);
 
     /**
      * Signal emmited when sendThreadComment() finished

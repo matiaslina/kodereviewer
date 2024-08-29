@@ -87,3 +87,8 @@ void ReviewThreadModel::addComment(QByteArray response)
     _thread->addReview(review);
     endInsertRows();
 }
+
+QString ReviewThreadModel::diffHunk() const
+{
+    return _thread->diffHunk();
+}

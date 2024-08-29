@@ -66,6 +66,7 @@ ecm_target_qml_sources(kode-reviewer
     qml/components/FileDelegate.qml
     qml/components/PullRequestOverview.qml
     qml/components/Editor.qml
+    qml/components/SourceCodeText.qml
 )
 
 target_compile_options(kode-reviewer PRIVATE -fexceptions -Wno-zero-as-null-pointer-constant)
@@ -84,20 +85,3 @@ target_link_libraries(kode-reviewer
 )
 
 install(TARGETS kode-reviewer  ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
-
-add_executable(git-test)
-target_sources(git-test PRIVATE git-test.cpp)
-target_compile_options(git-test  PRIVATE -fexceptions -Wno-zero-as-null-pointer-constant)
-target_link_libraries(git-test
-      PRIVATE
-    Qt6::Quick
-    Qt6::Qml
-    Qt6::Gui
-    Qt6::QuickControls2
-    Qt6::Widgets
-    KF6::I18n
-    KF6::CoreAddons
-    KF6::IconThemes
-    git2
-    qgit2
-  )

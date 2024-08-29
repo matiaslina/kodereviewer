@@ -33,9 +33,11 @@ class Review : public QObject  {
     Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
     Q_PROPERTY(QDateTime createdAt READ createdAt NOTIFY createdAtChanged)
     Q_PROPERTY(QDateTime updatedAt READ updatedAt NOTIFY updatedAtChanged)
+    Q_PROPERTY(QString commitId READ commitId CONSTANT)
 
     Q_PROPERTY(QString username READ username NOTIFY usernameChanged)
     Q_PROPERTY(QUrl avatarUrl READ avatarUrl NOTIFY avatarUrlChanged)
+    Q_PROPERTY(QString diffHunk READ diffHunk CONSTANT)
 
     QML_ELEMENT
 
@@ -54,6 +56,8 @@ public:
 
     QString username() const;
     QUrl avatarUrl() const;
+    QString commitId() const;
+    QString diffHunk() const;
 
 signals:
     void idChanged(int id);
@@ -80,6 +84,8 @@ private:
     QString _description;
     QDateTime _createdAt;
     QDateTime _updatedAt;
+
+    QString _commitId;
 
     /// Id of the Review comment that this affects
     unsigned int _inReplyTo = 0;
@@ -113,6 +119,11 @@ class ReviewThread : public QObject {
      * Holds the comments for this review
      */
     Q_PROPERTY(QList<Review*> comments READ comments NOTIFY commentsChanged)
+
+    /**
+     * Hold the diff of this thread
+     */
+    Q_PROPERTY(QString diffHunk READ diffHunk CONSTANT)
 
      /**
      * Holds the original line of the review
@@ -162,10 +173,13 @@ public:
      */
     int originalLine() const;
 
+    QString diffHunk() const;
+
     /**
      * @returns If the review is outdated
      */
     bool isOutdated() const;
+
 
 signals:
     void pathChanged(QString path);
@@ -194,6 +208,35 @@ private:
     std::vector<Review *> childs;
 };
 
+/**
+ * Pull request HEAD data
+ *
+ * This contains all the data of the source of a pull request
+ */
+
+class PullRequestHead : public QObject
+{
+    Q_OBJECT
+
+    Q_PROPERTY(QString label READ label CONSTANT)
+    Q_PROPERTY(QString ref READ ref CONSTANT)
+    Q_PROPERTY(QString sha READ sha CONSTANT)
+
+    QML_ELEMENT
+
+public:
+    PullRequestHead(QObject *parent = nullptr);
+    PullRequestHead(QJsonDocument &document, QObject *parent = nullptr);
+    ~PullRequestHead();
+    QString label() const;
+    QString ref() const;
+    QString sha() const;
+private:
+    QString _label;
+    QString _ref;
+    QString _sha;
+};
+
 /*! Pull request data from
   https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
   (/pull-request)
@@ -213,7 +256,7 @@ class PullRequest : public QObject {
     Q_PROPERTY(State state READ state CONSTANT)
     Q_PROPERTY(QDateTime createdAt READ createdAt CONSTANT)
     Q_PROPERTY(QDateTime updatedAt READ updatedAt CONSTANT)
-
+    Q_PROPERTY(PullRequestHead *head READ head CONSTANT)
     Q_PROPERTY(QString sourceRef READ sourceRef NOTIFY sourceRefChanged)
     Q_PROPERTY(QString targetRef READ targetRef NOTIFY targetRefChanged)
 
@@ -254,6 +297,8 @@ public:
 
     QDateTime createdAt() const;
     QDateTime updatedAt() const;
+
+    PullRequestHead *head() const;
 
     QString sourceRef() const;
     QString targetRef() const;
@@ -316,6 +361,8 @@ private:
 
     QString _sourceRef;
     QString _targetRef;
+
+    std::unique_ptr<PullRequestHead> _head;
 
     QHash<QPair<QString, int>, ReviewThread*> _threads;
 

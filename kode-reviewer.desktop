@@ -1,7 +1,8 @@
 [Desktop Entry]
 Name=Kode reviewer
 Exec=kode-reviewer
-Icon=kde
+Icon=kode-reviewer
+Comment=A tool to make code reviews
 Type=Application
 Terminal=false
-Categories=Development
+Categories=Development;Debugger;Qt;

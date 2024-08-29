@@ -94,7 +94,8 @@ Kirigami.ApplicationWindow {
     pageStack.initialPage: WelcomePage {
         onProjectSelected: (project) => {
             root.project = project
-            root.connection.getPullRequests();
+            root.connection.getPullRequests()
+            switchToPullRequestOverview()
         }
     }
     onCurrentPullRequestChanged: {
@@ -103,8 +104,6 @@ Kirigami.ApplicationWindow {
             gitBackend.targetRef = currentPullRequest.targetRef
             root.connection.getPullRequestThreads(currentPullRequest.number)
         }
-        currentPage = "PullRequestOverview"
-        switchToPullRequestOverview()
     }
 
     onCurrentReviewFileChanged: {

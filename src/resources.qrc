@@ -16,5 +16,6 @@
         <file>qml/components/RoundedImage.qml</file>
         <file>qml/components/DrawerHeader.qml</file>
         <file>qml/components/Editor.qml</file>
+        <file>qml/components/SourceCodeText.qml</file>
     </qresource>
 </RCC>

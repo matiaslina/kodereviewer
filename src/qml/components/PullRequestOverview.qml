@@ -22,6 +22,7 @@ ListView {
 
     header: ColumnLayout {
         id: mainLayout
+        visible: pullRequest
         width: ListView.view ? ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin : 0
 
         Kirigami.Heading {
@@ -52,16 +53,23 @@ ListView {
     delegate: CommentDelegate {}
 
     Kirigami.PlaceholderMessage {
+        visible: !pullRequest
+        anchors.centerIn: parent
+        icon.name: "kode-reviewer"
+        text: "Select a pull request"
+    }
+
+    Kirigami.PlaceholderMessage {
         anchors.centerIn: parent
         width: parent.width - (Kirigami.Units.largeSpacing * 4)
-        visible: root.count === 0 && !root.loadingComments
+        visible: pullRequest && root.count === 0 && !root.loadingComments
         text: "Nothing here"
     }
 
     Kirigami.PlaceholderMessage {
         anchors.centerIn: parent
         width: parent.width - (Kirigami.Units.largeSpacing * 4)
-        visible: root.loadingComments
+        visible: pullRequest && root.loadingComments
         text: "Loading comments..."
     }
 }

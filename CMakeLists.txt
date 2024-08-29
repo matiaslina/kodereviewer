@@ -42,6 +42,8 @@ ecm_find_qmlmodule(org.kde.kirigami REQUIRED)
 add_subdirectory(src)
 
 install(PROGRAMS kode-reviewer.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+install(FILES org.kde.kode-reviewer.metainfo.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
+install(FILES kode-reviewer.svg DESTINATION ${KDE_INSTALL_FULL_ICONDIR}/hicolor/scalable/apps)
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
 

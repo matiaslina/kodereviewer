@@ -7,6 +7,7 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QUrl>
+#include <QIcon>
 #include <qgit2.h>
 #include <qqml.h>
 #include <QQmlContext>
@@ -32,7 +33,7 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName(QStringLiteral("KDE"));
     QApplication::setOrganizationDomain(QStringLiteral("kde.org"));
     QApplication::setApplicationName(QStringLiteral("Kode Reviewer"));
-    QApplication::setDesktopFileName(QStringLiteral("org.kde.kode-reviewer"));
+    QApplication::setDesktopFileName(QStringLiteral("kode-reviewer"));
 
     QApplication::setStyle(QStringLiteral("breeze"));
     if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE")) {

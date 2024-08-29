@@ -35,6 +35,8 @@ public:
      */
     Q_INVOKABLE int getThreadId() const;
 
+    Q_INVOKABLE QString diffHunk() const;
+
     /**
      * Adds a comment after sending it to github
      */
